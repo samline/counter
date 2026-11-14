@@ -5,7 +5,7 @@ description: Use @samline/counter in React, Vue, Svelte and Astro, and keep it w
 locale: en
 sidebar:
   group: guides
-  order: 3
+  order: 4
 ---
 
 `counter` returns a cleanup that also restores the original text, so it fits every framework's mount and unmount hooks. Render the final value; the counter replaces it only while animating.
