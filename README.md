@@ -2,7 +2,7 @@
 
 Count numbers up (or down) as they scroll into view, with easing, decimals and `Intl` formatting, for vanilla JavaScript, any framework and plain HTML. The final value stays in the HTML, so it is right without JavaScript, for search engines and with reduced motion.
 
-[Demo](https://samline.github.io/utils/counter/) · [Examples](https://samline.github.io/utils/counter/examples/) · [Documentation](https://samline.github.io/utils/docs/counter/) · [Changelog](CHANGELOG.md)
+[Demo](https://samline.github.io/counter/) · [Examples](https://samline.github.io/counter/examples/) · [Documentation](https://samline.github.io/counter/docs/) · [Changelog](CHANGELOG.md)
 
 ## Table of contents
 
@@ -98,29 +98,29 @@ Counts by elapsed time, not frames, with `ease-out`, `ease-in-out`, `linear` or 
 
 ## Documentation
 
-Read the [documentation](https://samline.github.io/utils/docs/counter/) for the full guides and API contracts, and explore [working examples](https://samline.github.io/utils/counter/examples/) with complete and separate source files.
+Read the [documentation](https://samline.github.io/counter/docs/) for the full guides and API contracts, and explore [working examples](https://samline.github.io/counter/examples/) with complete and separate source files.
 
-| Guide                                                                            | What it covers                                                  |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [Installation](https://samline.github.io/utils/docs/counter/getting-started/)    | npm, CDN and the first counter.                                 |
-| [API reference](https://samline.github.io/utils/docs/counter/reference/api/)     | `counter`, `autoCounter`, `animateNumber` and `window.Counter`. |
-| [Options](https://samline.github.io/utils/docs/counter/reference/configuration/) | Attributes, options and states.                                 |
-| [Formatting](https://samline.github.io/utils/docs/counter/guides/formatting/)    | Locales, currencies, percentages and a steady layout.           |
-| [Frameworks](https://samline.github.io/utils/docs/counter/guides/frameworks/)    | React, Vue, Svelte, Astro and page swaps.                       |
+| Guide                                                                      | What it covers                                                  |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [Installation](https://samline.github.io/counter/docs/getting-started/)    | npm, CDN and the first counter.                                 |
+| [API reference](https://samline.github.io/counter/docs/reference/api/)     | `counter`, `autoCounter`, `animateNumber` and `window.Counter`. |
+| [Options](https://samline.github.io/counter/docs/reference/configuration/) | Attributes, options and states.                                 |
+| [Formatting](https://samline.github.io/counter/docs/guides/formatting/)    | Locales, currencies, percentages and a steady layout.           |
+| [Frameworks](https://samline.github.io/counter/docs/guides/frameworks/)    | React, Vue, Svelte, Astro and page swaps.                       |
 
 ## Changelog
 
-Read [CHANGELOG.md](CHANGELOG.md) or the [published changelog](https://samline.github.io/utils/docs/counter/changelog/) for release history and explicitly marked breaking and behavior changes. Review the notes before upgrading.
+Read [CHANGELOG.md](CHANGELOG.md) or the [published changelog](https://samline.github.io/counter/docs/changelog/) for release history and explicitly marked breaking and behavior changes. Review the notes before upgrading.
 
 ## AI agent skill
 
-The [Counter skill](https://samline.github.io/utils/skills/counter/SKILL.md) teaches verified package integration. Its maintained [repository source](site/SKILL.md) and website download are the same file. Verify the installed package version before applying its guidance.
+The [Counter skill](https://samline.github.io/counter/skills/counter/SKILL.md) teaches verified package integration. Its maintained [repository source](skills/counter/SKILL.md) and website download are the same file. Verify the installed package version before applying its guidance.
 
-Download [SKILL.md](https://samline.github.io/utils/skills/counter/SKILL.md) into a `counter/` folder in your agent's supported skill directory. For agents that discover project skills from `.agents/skills/`:
+Download [SKILL.md](https://samline.github.io/counter/skills/counter/SKILL.md) into a `counter/` folder in your agent's supported skill directory. For agents that discover project skills from `.agents/skills/`:
 
 ```sh
 mkdir -p .agents/skills/counter
-curl --fail --location https://samline.github.io/utils/skills/counter/SKILL.md \
+curl --fail --location https://samline.github.io/counter/skills/counter/SKILL.md \
   --output .agents/skills/counter/SKILL.md
 ```
 
