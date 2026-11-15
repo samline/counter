@@ -1,0 +1,140 @@
+{
+  "status": "verified",
+  "packageVersion": "1.0.0",
+  "capabilityReview": {
+    "status": "verified",
+    "integrations": [
+      {
+        "name": "Package / ESM and CommonJS",
+        "evidence": "package.json exports",
+        "destination": "docs/src/content/docs/getting-started.mdx",
+        "reviewed": true
+      },
+      {
+        "name": "HTML / CDN (window.Counter)",
+        "evidence": "src/browser/global.ts",
+        "destination": "docs/src/content/docs/getting-started.mdx",
+        "reviewed": true
+      },
+      {
+        "name": "React, Vue, Svelte and Astro",
+        "evidence": "counter() cleanup and autoCounter observe",
+        "destination": "docs/src/content/docs/guides/frameworks.md",
+        "reviewed": true
+      }
+    ],
+    "scenarios": [
+      {
+        "name": "Stats band",
+        "evidence": "test/counter.test.ts, tests/e2e/counter.spec.ts, tests/e2e/examples.spec.ts",
+        "destination": "site/examples/stats.astro",
+        "reviewed": true
+      },
+      {
+        "name": "Locales and currencies",
+        "evidence": "test/counter.test.ts (parseNumber, format), tests/e2e/examples.spec.ts",
+        "destination": "site/examples/locales.astro",
+        "reviewed": true
+      },
+      {
+        "name": "Count down and repeat",
+        "evidence": "test/counter.test.ts (repeat), tests/e2e/examples.spec.ts",
+        "destination": "site/examples/repeat.astro",
+        "reviewed": true
+      }
+    ],
+    "onboarding": {
+      "equivalentModes": true
+    }
+  },
+  "themeReview": {
+    "status": "verified",
+    "source": "The maintainer asked for a new accent, not used by any sibling, in chat on 2026-11-13; vermilion (#e0533d) derived with npm run accent. Carried over from the utils collection site.",
+    "accentLight": "#bf4532",
+    "accentDark": "#ea6a55"
+  },
+  "sources": [
+    {
+      "source": "README.md",
+      "sha256": "3565fdb1c9fd28166600679fc9745cd05146685594a21da4e61d412c11ea1df6",
+      "destination": "docs/src/content/docs/index.mdx",
+      "reviewed": true
+    },
+    {
+      "source": "src/browser/global.ts",
+      "sha256": "4f15b5a0207b01739c1cda1b3a6b3ccebf2fcb08786c21137177791d01449636",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/core/counter.ts",
+      "sha256": "8569c5410f5af82fbe63c2f01de0d304407ec56de963532b52c5995d94827a01",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/core/index.ts",
+      "sha256": "04f2ec878f8ddce6b78b4c06f95497599681ca06e0f0dc56fd3bba1ebd64fd41",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/index.ts",
+      "sha256": "10dcf963a768191ce7cb8647f2eb0a6c9a73451881b28529af375f4131223f4f",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/vanilla/index.ts",
+      "sha256": "b30bbb9a6bb17622fceb25a8ed552b25b248eb03804178e702da171108f87389",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/core/counter.ts",
+      "sha256": "8569c5410f5af82fbe63c2f01de0d304407ec56de963532b52c5995d94827a01",
+      "destination": "docs/src/content/docs/reference/configuration.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/core/counter.ts",
+      "sha256": "8569c5410f5af82fbe63c2f01de0d304407ec56de963532b52c5995d94827a01",
+      "destination": "docs/src/content/docs/guides/formatting.md",
+      "reviewed": true
+    },
+    {
+      "source": "src/core/counter.ts",
+      "sha256": "8569c5410f5af82fbe63c2f01de0d304407ec56de963532b52c5995d94827a01",
+      "destination": "docs/src/content/docs/guides/frameworks.md",
+      "reviewed": true
+    }
+  ],
+  "publicExports": [
+    {
+      "source": "counter, autoCounter",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "animateNumber, parseNumber, EASINGS",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    },
+    {
+      "source": "CounterOptions, AutoCounterOptions, AnimateNumberOptions, Easing, EasingName, CounterState",
+      "destination": "docs/src/content/docs/reference/configuration.md",
+      "reviewed": true
+    },
+    {
+      "source": "data-counter attributes",
+      "destination": "docs/src/content/docs/reference/configuration.md",
+      "reviewed": true
+    },
+    {
+      "source": "window.Counter",
+      "destination": "docs/src/content/docs/reference/api.md",
+      "reviewed": true
+    }
+  ],
+  "notes": "Content reviewed in the utils collection site (1.0.0), then moved to this repository's standalone site on 2026-11-14. Source hashes were recomputed against @samline/counter@1.0.0."
+}

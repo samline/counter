@@ -1,0 +1,40 @@
+{
+  "package": {
+    "name": "Counter",
+    "npmName": "@samline/counter",
+    "version": "1.0.0",
+    "description": "Count numbers up (or down) as they scroll into view, with easing, decimals and Intl formatting, for vanilla JavaScript, any framework and plain HTML. The final value stays in the HTML.",
+    "author": "Samuel Olvera (samline)",
+    "license": "MIT",
+    "keywords": [
+      "counter",
+      "count-up",
+      "countup",
+      "number",
+      "animation",
+      "scroll",
+      "intersection-observer",
+      "intl"
+    ]
+  },
+  "site": {
+    "url": "https://samline.github.io/counter/",
+    "repository": "https://github.com/samline/counter",
+    "namespace": "samline-counter",
+    "template": false,
+    "credit": "samline"
+  },
+  "theme": {
+    "accentLight": "#bf4532",
+    "accentDark": "#ea6a55"
+  },
+  "delivery": {
+    "cdnScript": "https://cdn.jsdelivr.net/npm/@samline/counter@1.0.0/dist/browser/counter.global.js",
+    "cdnStylesheet": null
+  },
+  "dev": {
+    "landingPort": 4430,
+    "docsPort": 4431,
+    "testPort": 4438
+  }
+}
