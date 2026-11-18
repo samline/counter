@@ -105,8 +105,8 @@
     "vitest": "^5.0.1"
   },
   "size": {
-    "./dist/index.js": 6000,
-    "./dist/browser/counter.global.js": 6000
+    "./dist/index.js": 6500,
+    "./dist/browser/counter.global.js": 6500
   },
   "workspaces": [
     "landing",

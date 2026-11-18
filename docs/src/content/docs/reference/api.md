@@ -126,7 +126,7 @@ const cancel = animateNumber({
   to: 72,
   duration: 800, // ms, default 2000
   delay: 0,
-  easing: 'ease-out', // 'linear', 'ease-in-out' or (progress) => eased
+  easing: 'ease-out', // any EASINGS name, 'cubic-bezier(…)' or (progress) => eased
   onUpdate: value => gauge.style.setProperty('--value', value),
   onComplete: () => console.log('done'),
 })
@@ -161,8 +161,11 @@ Reads a number written for people in `locale`: `parseNumber('1.234,5 €', 'de')
 
 ```js
 import { EASINGS } from '@samline/counter'
-// { linear, 'ease-out', 'ease-in-out' }: functions from progress to eased progress
+// { linear, 'ease-in', 'ease-out', 'ease-in-out', 'ease-out-expo', 'ease-out-back' }
+// Functions from progress (0–1) to eased progress.
 ```
+
+Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS curve as a function (or `null` when the string is not a valid curve), and `isEasing(value)` tells whether a value is an easing name, a valid `cubic-bezier()` or a function.
 
 `Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
 

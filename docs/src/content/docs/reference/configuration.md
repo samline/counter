@@ -13,25 +13,27 @@ sidebar:
 
 Attributes win over options, so one call can set defaults and each number can override them.
 
-| Attribute                 | Value                               | Description                                                                               |
-| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| `data-counter`            | number, or empty                    | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text. |
-| `data-counter-from`       | number                              | Start value. Higher than the target counts down.                                          |
-| `data-counter-duration`   | milliseconds                        | How long counting takes                                                                   |
-| `data-counter-delay`      | milliseconds                        | Wait before counting                                                                      |
-| `data-counter-easing`     | `ease-out`, `ease-in-out`, `linear` | Curve of the count                                                                        |
-| `data-counter-decimals`   | number                              | Decimals to show                                                                          |
-| `data-counter-locale`     | BCP 47 tag                          | Language for formatting and for reading the text                                          |
-| `data-counter-repeat`     | present, or `false`                 | Reset on leaving, count again on every entry                                              |
-| `data-counter-start`      | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
-| `data-counter-live`       | present, or `false`                 | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)  |
-| `data-counter-css-vars`   | present, `false`, or a selector     | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0) |
-| `data-counter-output`     | selector                            | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)      |
-| `data-counter-grouping`   | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
-| `data-counter-as`         | `number`, `time`, `date`            | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)  |
-| `data-counter-step`       | number                              | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)         |
-| `data-counter-date-style` | `full`, `long`, `medium`, `short`   | Date format with `as="date"`; default `long` (since 1.2.0)                                |
-| `datetime`                | ISO date                            | Final date with `as="date"`; `data-counter-from` takes an ISO date too                    |
+| Attribute                 | Value                              | Description                                                                                                                            |
+| ------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-counter`            | number, or empty                   | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text.                                              |
+| `data-counter-from`       | number                             | Start value. Higher than the target counts down.                                                                                       |
+| `data-counter-duration`   | milliseconds                       | How long counting takes                                                                                                                |
+| `data-counter-delay`      | milliseconds                       | Wait before counting                                                                                                                   |
+| `data-counter-speed`      | units per second                   | Count at a steady rate instead of a fixed duration (since 1.5.0)                                                                       |
+| `data-counter-stagger`    | milliseconds, on a container       | Each next `[data-counter]` inside starts this much later (since 1.5.0)                                                                 |
+| `data-counter-easing`     | an easing name or `cubic-bezier()` | Curve of the count: `linear`, `ease-in`, `ease-out`, `ease-in-out`, `ease-out-expo`, `ease-out-back` or `cubic-bezier(x1, y1, x2, y2)` |
+| `data-counter-decimals`   | number                             | Decimals to show                                                                                                                       |
+| `data-counter-locale`     | BCP 47 tag                         | Language for formatting and for reading the text                                                                                       |
+| `data-counter-repeat`     | present, or `false`                | Reset on leaving, count again on every entry                                                                                           |
+| `data-counter-start`      | `visible`, `load`, `manual`        | When counting starts (since 1.1.0)                                                                                                     |
+| `data-counter-live`       | present, or `false`                | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)                                               |
+| `data-counter-css-vars`   | present, `false`, or a selector    | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0)                                              |
+| `data-counter-output`     | selector                           | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
+| `data-counter-grouping`   | `auto`, `true`, `false`            | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)                                                |
+| `data-counter-as`         | `number`, `time`, `date`           | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)                                               |
+| `data-counter-step`       | number                             | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)                                                      |
+| `data-counter-date-style` | `full`, `long`, `medium`, `short`  | Date format with `as="date"`; default `long` (since 1.2.0)                                                                             |
+| `datetime`                | ISO date                           | Final date with `as="date"`; `data-counter-from` takes an ISO date too                                                                 |
 
 ## Options
 
@@ -41,7 +43,9 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `to`                           | —                                      | Final value when `data-counter` has no number; by default it is read from the text         |
 | `duration`                     | `2000`                                 | Milliseconds                                                                               |
 | `delay`                        | `0`                                    | Milliseconds before counting                                                               |
-| `easing`                       | `'ease-out'`                           | A name or a function from progress (`0`–`1`) to eased progress                             |
+| `speed`                        | —                                      | Units per second instead of `duration`; seconds with `time`, days with `date`              |
+| `stagger`                      | `0`                                    | Milliseconds added to the delay of each next element of the call                           |
+| `easing`                       | `'ease-out'`                           | A name, a `cubic-bezier()` string, or a function from progress (`0`–`1`) to eased progress |
 | `decimals`                     | from the target                        | Decimals to show                                                                           |
 | `locale`                       | closest `lang`                         | BCP 47 locale; an invalid one falls back to the browser's                                  |
 | `format`                       | —                                      | `Intl.NumberFormat` options, for example `{ style: 'currency', currency: 'EUR' }`          |
@@ -62,6 +66,25 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `onUpdate(value, element)`     | —                                      | Every frame, with the unformatted value                                                    |
 | `onComplete(element)`          | —                                      | The final value is shown (also right away with reduced motion)                             |
 | `selector`, `scope`, `observe` | `'[data-counter]'`, `document`, `true` | `autoCounter` only                                                                         |
+
+## Easing, speed and stagger
+
+Since 1.5.0:
+
+- **Easings:** `linear`, `ease-in`, `ease-out` (default), `ease-in-out`, `ease-out-expo` (fast start, long landing, good for big numbers) and `ease-out-back` (goes a little past the target, then settles). Any CSS `cubic-bezier(x1, y1, x2, y2)` works too, also in `data-counter-easing`; `x1` and `x2` must be between `0` and `1`, and an invalid curve falls back to `ease-out`.
+- **Speed:** `data-counter-speed="1000"` counts 1,000 units per second, so `500` takes half a second and `4000` four seconds; it replaces `duration`. After `set()`, the time comes from the distance left. Seconds per second with `as="time"`, days per second with `as="date"`.
+- **Stagger:** `data-counter-stagger="150"` on a container starts its `[data-counter]` elements 150 ms apart, in document order, also when `autoCounter` counts them one by one. In JavaScript, `stagger` does the same for the elements of one `counter()` call. It adds to `delay`, and only the first count of each element waits.
+
+```html
+<p data-counter-stagger="150">
+  <span data-counter="120">120</span>
+  <span data-counter="340">340</span>
+  <span data-counter="560">560</span>
+</p>
+<span data-counter="1000" data-counter-easing="cubic-bezier(0.2, 0.8, 0.2, 1)">1000</span>
+```
+
+The [Motion example](../../guides/examples/#guide-motion) shows every curve side by side.
 
 ## Units of `from` and `to`
 

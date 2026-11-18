@@ -15,7 +15,7 @@ import {
 import { observeVisibility } from '@samline/is-visible'
 import {
   type Easing,
-  isEasingName,
+  isEasing,
   type AnimateNumberOptions,
   type NumberAnimation,
   resolveEasing,
@@ -159,6 +159,10 @@ interface Setup {
   start: CounterStart
   /** Whole steps shown while counting, in the unit of the value; `0` for none. */
   step: number
+  /** Units per second, or `0` to use `duration`. */
+  speed: number
+  /** What one unit of `speed` is: `1`, or a day in milliseconds for dates. */
+  unit: number
   /** Count to the new value when `data-counter` or `datetime` changes. */
   live: boolean
   /** Where `--counter-value` and `--counter-progress` are set, or `null`. */
@@ -340,7 +344,9 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     step: Math.max(0, value.step),
     duration: readNumber(element, 'data-counter-duration', options.duration ?? 2000),
     delay: readNumber(element, 'data-counter-delay', options.delay ?? 0),
-    easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
+    easing: isEasing(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
+    speed: Math.max(0, readNumber(element, 'data-counter-speed', options.speed ?? 0)),
+    unit: kind === 'date' ? DAY : 1,
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     live: readBoolean(element, 'data-counter-live', options.live ?? true),
     ...outputsOf(element, options),
@@ -413,6 +419,8 @@ interface Entry {
   state: CounterState
   /** Stops watching visibility. */
   unwatch: () => void
+  /** Extra delay before the first count, from `stagger`. */
+  offset: number
 }
 
 /** Which live controller owns an element. */
@@ -484,9 +492,21 @@ export const counter = (
         value: setup.to,
         state: 'done',
         unwatch: noop,
+        offset: 0,
       })
   }
   if (entries.size === 0) return inert()
+
+  /** Extra delay from `stagger`, or from a `data-counter-stagger` container. */
+  const stagger = () =>
+    [...entries].forEach(([element, entry], index) => {
+      const container = element.closest('[data-counter-stagger]')
+      entry.offset = container
+        ? readNumber(container, 'data-counter-stagger', 0) *
+          Math.max(0, Array.from(container.querySelectorAll(`[${ATTRIBUTE}]`)).indexOf(element))
+        : (current.stagger ?? 0) * index
+    })
+  stagger()
 
   const listeners = new Map<CounterEvent, Set<CounterListener>>()
   let active = true
@@ -572,9 +592,12 @@ export const counter = (
     entries.get(element)!.tween = createTween({
       from: start,
       to: setup.to,
-      duration: setup.duration,
+      duration:
+        setup.speed > 0
+          ? (Math.abs(setup.to - start) / setup.unit / setup.speed) * 1000
+          : setup.duration,
       // Only the first count waits; new values move at once.
-      delay: from === undefined ? setup.delay : 0,
+      delay: from === undefined ? setup.delay + entries.get(element)!.offset : 0,
       easing: setup.easing,
       onUpdate: value => {
         show(element, value)
@@ -686,6 +709,7 @@ export const counter = (
   )
 
   const reprepare = () => {
+    stagger()
     entries.forEach((entry, element) => {
       const setup = prepare(element, entry.text, current)
       // The text was readable once; keep the old setup if the attribute became invalid.

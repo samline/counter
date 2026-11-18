@@ -2,6 +2,20 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Easings `ease-in`, `ease-out-expo` and `ease-out-back`.
+- CSS `cubic-bezier(x1, y1, x2, y2)` strings as easings, in `easing` and in `data-counter-easing`. `cubicBezier()` and `isEasing()` helpers.
+- `speed` option and `data-counter-speed` attribute: units per second instead of a fixed `duration`, so small numbers take less time than big ones; after `set()` the time comes from the distance left.
+- `stagger` option, and `data-counter-stagger` on a container: each next number starts later, also when `autoCounter` counts them one by one.
+- Motion example: seven curves side by side, a staggered row and two speeds.
+
+### Changed
+
+- Size budgets: 6.5 KB gzip for the main entry and the browser bundle (were 6 KB).
+
 ## [1.4.0] - 2026-11-18
 
 ### Added

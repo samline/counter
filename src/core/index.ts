@@ -1,5 +1,7 @@
 export {
   EASINGS,
+  cubicBezier,
+  isEasing,
   STARTS,
   KINDS,
   DATE_STYLES,

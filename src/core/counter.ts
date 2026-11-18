@@ -10,14 +10,61 @@ export type { AutoInitController, ElementTarget }
 
 export const EASINGS = {
   linear: (t: number) => t,
+  'ease-in': (t: number) => t ** 3,
   'ease-out': (t: number) => 1 - (1 - t) ** 3,
   'ease-in-out': (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2),
+  /** Fast start, long gentle landing: good for large numbers. */
+  'ease-out-expo': (t: number) => (t >= 1 ? 1 : 1 - 2 ** (-10 * t)),
+  /** Goes a little past the target, then settles on it. */
+  'ease-out-back': (t: number) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2,
 } as const
 
 export type EasingName = keyof typeof EASINGS
 
-/** A named easing or a function from progress (`0`–`1`) to eased progress. */
-export type Easing = EasingName | ((progress: number) => number)
+/**
+ * A named easing, a CSS `cubic-bezier(x1, y1, x2, y2)` string, or a function
+ * from progress (`0`–`1`) to eased progress.
+ */
+export type Easing = EasingName | `cubic-bezier(${string})` | ((progress: number) => number)
+
+const BEZIER = /^cubic-bezier\(([^,]+),([^,]+),([^,]+),([^,)]+)\)$/
+
+/**
+ * Read a CSS `cubic-bezier(x1, y1, x2, y2)` into an easing function, as CSS
+ * defines it. Returns `null` for anything else; `x1` and `x2` must be `0`–`1`.
+ */
+export const cubicBezier = (value: string): ((progress: number) => number) | null => {
+  const match = BEZIER.exec(value.replace(/\s+/g, ''))
+  const [x1, y1, x2, y2] = match ? match.slice(1).map(Number) : []
+  if (
+    [x1, y1, x2, y2].some(n => n === undefined || !Number.isFinite(n)) ||
+    x1! < 0 ||
+    x1! > 1 ||
+    x2! < 0 ||
+    x2! > 1
+  )
+    return null
+  const curve = (a: number, b: number, u: number) =>
+    3 * a * u * (1 - u) ** 2 + 3 * b * u ** 2 * (1 - u) + u ** 3
+  return t => {
+    if (t <= 0 || t >= 1) return t <= 0 ? 0 : 1
+    // x grows with u, so halving finds the u whose x is t.
+    let low = 0
+    let high = 1
+    for (let i = 0; i < 24; i++) {
+      const mid = (low + high) / 2
+      if (curve(x1!, x2!, mid) < t) low = mid
+      else high = mid
+    }
+    return curve(y1!, y2!, (low + high) / 2)
+  }
+}
+
+/** Whether `value` names an easing or is a valid `cubic-bezier()`. */
+export const isEasing = (value: unknown): value is Easing =>
+  typeof value === 'function' ||
+  isEasingName(value) ||
+  (typeof value === 'string' && cubicBezier(value) !== null)
 
 export const isEasingName = (value: unknown): value is EasingName =>
   typeof value === 'string' && Object.prototype.hasOwnProperty.call(EASINGS, value)
@@ -55,12 +102,12 @@ export interface NumberAnimation {
   isRunning: () => boolean
 }
 
-export const resolveEasing = (easing: Easing = 'ease-out') =>
+export const resolveEasing = (easing: Easing = 'ease-out'): ((progress: number) => number) =>
   typeof easing === 'function'
     ? easing
     : isEasingName(easing)
       ? EASINGS[easing]
-      : EASINGS['ease-out']
+      : (cubicBezier(easing) ?? EASINGS['ease-out'])
 
 /* ------------------------------------------------------------------------ */
 /* Parsing and formatting                                                    */
@@ -262,8 +309,20 @@ export interface CounterOptions {
   dateFormat?: Intl.DateTimeFormatOptions
   /** Milliseconds. Defaults to `2000`. */
   duration?: number
+  /**
+   * Units per second instead of a fixed `duration`, so a small number takes
+   * less time than a big one: `500` counts to 1,000 in two seconds. Seconds
+   * per second with `as: 'time'`, days per second with `as: 'date'`.
+   */
+  speed?: number
   /** Milliseconds before counting starts. Defaults to `0`. */
   delay?: number
+  /**
+   * Milliseconds added to the delay of each next element of this call, so a
+   * row of numbers starts one after another. A `data-counter-stagger`
+   * container staggers its `[data-counter]` elements instead.
+   */
+  stagger?: number
   /** Defaults to `'ease-out'`. */
   easing?: Easing
   /** Decimals to show. Defaults to the decimals of the final value. */

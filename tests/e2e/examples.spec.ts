@@ -185,4 +185,39 @@ test.describe('counter copyable examples', () => {
       .evaluate(bar => bar.clientWidth / bar.parentElement!.clientWidth)
     expect(fill).toBeCloseTo(1, 2)
   })
+
+  test('easings, stagger and speed end on the rendered values', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'motion'))
+    const easings = page.locator('.easings [data-counter]')
+    await expect(easings).toHaveCount(7)
+    await expect(easings).toHaveText(Array(7).fill('1000'))
+
+    // Record which numbers are done each time one completes, inside the page.
+    await page.evaluate(() => {
+      const log: string[][] = []
+      Object.assign(window, { log })
+      document.addEventListener('counter:complete', () =>
+        log.push(
+          [
+            ...document.querySelectorAll(
+              '[data-counter-stagger] [data-counter], [data-counter-speed]'
+            ),
+          ].map(number => number.getAttribute('data-counter-state')!)
+        )
+      )
+    })
+    await page.getByRole('button', { name: 'Count again' }).click()
+    const row = page.locator('[data-counter-stagger] [data-counter]')
+    const speed = page.locator('[data-counter-speed]')
+    await expect(row).toHaveText(['120', '340', '560', '780'], { timeout: 4000 })
+    await expect(speed).toHaveText(['500', '4,000'], { timeout: 6000 })
+    await expect(speed.last()).toHaveAttribute('data-counter-state', 'done', { timeout: 6000 })
+    const log: string[][] = await page.evaluate(() => (window as any).log)
+    // Stagger: the row finishes in order, first to last.
+    const doneAt = (index: number) => log.findIndex(states => states[index] === 'done')
+    expect([0, 1, 2, 3].map(doneAt)).toEqual([...[0, 1, 2, 3].map(doneAt)].sort((a, b) => a - b))
+    expect(doneAt(0)).toBeLessThan(doneAt(3))
+    // Speed: 500 finishes long before 4,000.
+    expect(doneAt(4)).toBeLessThan(doneAt(5))
+  })
 })

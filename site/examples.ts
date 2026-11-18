@@ -149,6 +149,61 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'motion',
+    tab: 'Motion',
+    title: 'Easings, stagger and speed',
+    description:
+      'Seven curves side by side, including ease-out-back and a CSS cubic-bezier. data-counter-stagger on a container starts its numbers one after another, and data-counter-speed counts a set amount per second, so 500 takes half a second and 4,000 takes four.',
+    files: {
+      html: `<div class="motion" lang="en">
+  <h3>Easing</h3>
+  <dl class="easings">
+    <div><dt>linear</dt><dd><span data-counter="1000" data-counter-easing="linear" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>ease-in</dt><dd><span data-counter="1000" data-counter-easing="ease-in" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>ease-out</dt><dd><span data-counter="1000" data-counter-easing="ease-out" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>ease-in-out</dt><dd><span data-counter="1000" data-counter-easing="ease-in-out" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>ease-out-expo</dt><dd><span data-counter="1000" data-counter-easing="ease-out-expo" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>ease-out-back</dt><dd><span data-counter="1000" data-counter-easing="ease-out-back" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+    <div><dt>cubic-bezier(0.2, 0.8, 0.2, 1)</dt><dd><span data-counter="1000" data-counter-easing="cubic-bezier(0.2, 0.8, 0.2, 1)" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+  </dl>
+  <h3>Stagger: one after another</h3>
+  <p class="row" data-counter-stagger="300">
+    <span data-counter="120" data-counter-duration="800">120</span>
+    <span data-counter="340" data-counter-duration="800">340</span>
+    <span data-counter="560" data-counter-duration="800">560</span>
+    <span data-counter="780" data-counter-duration="800">780</span>
+  </p>
+  <h3>Speed: 1,000 per second</h3>
+  <p class="row">
+    <span data-counter="500" data-counter-speed="1000">500</span>
+    <span data-counter="4000" data-counter-speed="1000" data-counter-grouping="true">4000</span>
+  </p>
+</div>
+<button type="button" id="again">Count again</button>`,
+      css: `.motion h3 { margin: 1rem 0 0.5rem; font-size: 0.875rem; }
+.easings { display: grid; gap: 0.25rem; margin: 0; }
+.easings div { --counter-progress: 1; display: grid; grid-template-columns: 13rem 1fr; gap: 1rem; align-items: center; }
+.easings dt { font: 0.8125rem/1.4 ui-monospace, monospace; }
+.easings dd { display: grid; grid-template-columns: 3.5rem 1fr; gap: 0.5rem; align-items: center; margin: 0; font-variant-numeric: tabular-nums; }
+/* The bar shows the curve: --counter-progress can go past 1 with ease-out-back. */
+.bar { height: 0.5rem; width: calc(var(--counter-progress) * 100%); max-width: 110%; border-radius: 1rem; background: #c2410c; }
+.row { display: flex; gap: 1.5rem; margin: 0; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.motion [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.motion [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'progress',
     tab: 'Progress and CSS',
     title: 'Progress bars, meters and CSS that follow the count',

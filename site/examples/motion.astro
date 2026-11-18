@@ -1,0 +1,114 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="motion-example">
+    <div class="motion" data-preview="motion" lang="en">
+      <h3>Easing</h3>
+      <dl class="easings">
+        <div><dt>linear</dt><dd><span data-counter="1000" data-counter-easing="linear" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>ease-in</dt><dd><span data-counter="1000" data-counter-easing="ease-in" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>ease-out</dt><dd><span data-counter="1000" data-counter-easing="ease-out" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>ease-in-out</dt><dd><span data-counter="1000" data-counter-easing="ease-in-out" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>ease-out-expo</dt><dd><span data-counter="1000" data-counter-easing="ease-out-expo" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>ease-out-back</dt><dd><span data-counter="1000" data-counter-easing="ease-out-back" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+        <div><dt>cubic-bezier(0.2, 0.8, 0.2, 1)</dt><dd><span data-counter="1000" data-counter-easing="cubic-bezier(0.2, 0.8, 0.2, 1)" data-counter-css-vars="div">1000</span><i class="bar"></i></dd></div>
+      </dl>
+      <h3>Stagger: one after another</h3>
+      <p class="row" data-counter-stagger="300">
+        <span data-counter="120" data-counter-duration="800">120</span>
+        <span data-counter="340" data-counter-duration="800">340</span>
+        <span data-counter="560" data-counter-duration="800">560</span>
+        <span data-counter="780" data-counter-duration="800">780</span>
+      </p>
+      <h3>Speed: 1,000 per second</h3>
+      <p class="row">
+        <span data-counter="500" data-counter-speed="1000">500</span>
+        <span data-counter="4000" data-counter-speed="1000" data-counter-grouping="true">4000</span>
+      </p>
+    </div>
+    <button type="button" class="again" data-again>Count again</button>
+  </div>
+</div>
+
+<style>
+  .motion-example {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+  .motion {
+    width: 100%;
+  }
+  h3 {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-subtle);
+  }
+  h3:first-child {
+    margin-top: 0;
+  }
+  .easings {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+  }
+  .easings div {
+    --counter-progress: 1;
+    display: grid;
+    grid-template-columns: minmax(8rem, 13rem) 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+  dt {
+    font: 0.8125rem/1.4 var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+  dd {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .bar {
+    width: calc(var(--counter-progress) * 100%);
+    max-width: 110%;
+    height: 0.5rem;
+    border-radius: 1rem;
+    background: var(--color-accent);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .again {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { autoCounter, getCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('motion', root => {
+    const controller = autoCounter({ scope: root })
+    root.querySelector('[data-again]')!.addEventListener('click', () =>
+      root.querySelectorAll('[data-counter]').forEach(number => getCounter(number)?.start())
+    )
+    return controller
+  })
+</script>
