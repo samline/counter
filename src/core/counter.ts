@@ -119,9 +119,29 @@ export const decimalSeparator = (locale: string | undefined) =>
 
 export const fractionDigits = (normalized: string) => normalized.split('.')[1]?.length ?? 0
 
+const DIGIT = /\p{Nd}/u
+
+/**
+ * The value of a decimal digit in any script: `'7'`, `'٧'` (Arabic-Indic),
+ * `'७'` (Devanagari) and `'７'` (full width) are all 7. Returns `-1` for
+ * anything else.
+ */
+export const digitValue = (char: string | undefined): number => {
+  if (!char || !DIGIT.test(char)) return -1
+  const code = char.codePointAt(0)!
+  // Digits come in runs of ten from zero; walk back to the start of the run.
+  let start = code
+  while (DIGIT.test(String.fromCodePoint(start - 1))) start--
+  return (code - start) % 10
+}
+
+/** The Arabic decimal separator reads as a decimal point in every language. */
+const isDecimal = (char: string | undefined, decimal: string) => char === decimal || char === '٫'
+
 /**
  * Read a number written for people in `locale`: `"1,234.5"` in English,
- * `"1.234,5"` in German, `"−12 %"`. Returns the value and its decimals.
+ * `"1.234,5"` in German, `"−12 %"`, or `"١٬٢٣٤"` in Arabic-Indic digits.
+ * Returns the value and its decimals.
  */
 export const parseNumber = (
   text: string,
@@ -130,8 +150,9 @@ export const parseNumber = (
   const decimal = decimalSeparator(locale)
   let normalized = ''
   for (const char of text.trim()) {
-    if (char >= '0' && char <= '9') normalized += char
-    else if (char === decimal) normalized += '.'
+    const digit = digitValue(char)
+    if (digit >= 0) normalized += digit
+    else if (isDecimal(char, decimal)) normalized += '.'
     else if ((char === '-' || char === '−') && normalized === '') normalized = '-'
   }
   if (!/\d/.test(normalized)) return null
@@ -149,9 +170,9 @@ export interface NumberShape {
   integerDigits: number
   /** Whether those digits are written with a group separator (`8,000`, not `8000`). */
   grouped: boolean
+  /** The zero of the script the digits are written in: `'0'`, or `'٠'` for Arabic-Indic. */
+  zero: string
 }
-
-const isDigit = (char: string | undefined) => char !== undefined && char >= '0' && char <= '9'
 
 /**
  * Describe how a number is written in `text`: `'$8,000'` has the prefix `'$'`
@@ -159,24 +180,53 @@ const isDigit = (char: string | undefined) => char !== undefined && char >= '0' 
  * digits. Returns `null` when the text has no digit.
  */
 export const readShape = (text: string, locale?: string): NumberShape | null => {
+  const chars = Array.from(text)
   let first = -1
   let last = -1
-  for (let i = 0; i < text.length; i++) {
-    if (!isDigit(text[i])) continue
+  chars.forEach((char, i) => {
+    if (digitValue(char) < 0) return
     if (first < 0) first = i
     last = i
-  }
+  })
   if (first < 0) return null
-  const decimal = text.indexOf(decimalSeparator(locale), first)
-  const integer = text.slice(first, decimal > first && decimal < last ? decimal : last + 1)
+  const separator = decimalSeparator(locale)
+  let decimal = first + 1
+  while (decimal <= last && !isDecimal(chars[decimal], separator)) decimal++
+  const integer = chars.slice(first, decimal)
   let start = first
-  if (text[start - 1] === '-' || text[start - 1] === '−') start--
+  if (chars[start - 1] === '-' || chars[start - 1] === '−') start--
+  const lead = chars[first]!
   return {
-    prefix: text.slice(0, start),
-    suffix: text.slice(last + 1),
-    integerDigits: integer.replace(/\D/g, '').length,
-    grouped: /\D/.test(integer),
+    prefix: chars.slice(0, start).join(''),
+    suffix: chars.slice(last + 1).join(''),
+    integerDigits: integer.filter(char => digitValue(char) >= 0).length,
+    grouped: integer.some(char => digitValue(char) < 0),
+    zero: String.fromCodePoint(lead.codePointAt(0)! - digitValue(lead)),
   }
+}
+
+const systems = new Map<string, string | undefined>()
+
+/**
+ * The `Intl` numbering system whose zero is `zero`: `'latn'` for `'0'`,
+ * `'arab'` for `'٠'`, `'deva'` for `'०'`. `undefined` when the browser
+ * cannot tell.
+ */
+export const numberingSystem = (zero: string): string | undefined => {
+  if (zero === '0') return 'latn'
+  if (!systems.has(zero)) {
+    const all =
+      (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.(
+        'numberingSystem'
+      ) ?? []
+    systems.set(
+      zero,
+      all.find(
+        system => new Intl.NumberFormat('en', { numberingSystem: system }).format(0) === zero
+      )
+    )
+  }
+  return systems.get(zero)
 }
 
 /* ------------------------------------------------------------------------ */
@@ -333,6 +383,12 @@ export interface CounterOptions {
    * locale does (`8,000` in English); `false` never groups.
    */
   grouping?: boolean | 'auto'
+  /**
+   * Keep the layout still while counting: digits get equal widths
+   * (`tabular-nums`) and the element reserves the width of the wider of its
+   * start and final text, so nothing around it moves. Defaults to `false`.
+   */
+  steady?: boolean
   /** BCP 47 locale for formatting. Defaults to the closest `lang` attribute. */
   locale?: string
   /** Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or `{ notation: 'compact' }`. */
@@ -435,6 +491,11 @@ export interface CounterController {
   /** Read the `data-counter-*` attributes again. */
   refresh: () => CounterController
   getSnapshot: () => CounterSnapshot[]
+  /**
+   * The text the counter shows for `value`, with the element's own format,
+   * template, clock or date style. Uses the first element when none is given.
+   */
+  format: (value: number, element?: Element) => string
   /** Listen to an event. Returns a function that stops listening. */
   on: (event: CounterEvent, listener: CounterListener) => () => void
   destroy: () => void

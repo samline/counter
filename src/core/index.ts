@@ -11,6 +11,8 @@ export {
   readDate,
   isDateOnly,
   parseNumber,
+  digitValue,
+  numberingSystem,
   readShape,
   ATTRIBUTE,
   STATE_ATTRIBUTE,

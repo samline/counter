@@ -1,0 +1,75 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="steady-example" data-preview="steady">
+    <div class="steady">
+      <h3>Without steady: the words after the number move</h3>
+      <p class="line" lang="en"><span data-counter>1,250,000</span> downloads this year</p>
+      <h3>With data-counter-steady: the line keeps still</h3>
+      <p class="line" lang="en">
+        <span data-downloads data-counter data-counter-steady>1,250,000</span> downloads this year
+      </p>
+      <h3>Digits in other scripts count in that script</h3>
+      <p class="line" lang="ar" dir="rtl">
+        <span data-counter data-counter-steady>١٬٢٥٠٬٠٠٠</span> تنزيل هذا العام
+      </p>
+      <p class="line" lang="hi"><span data-counter data-counter-steady>१२,५०,०००</span> डाउनलोड इस साल</p>
+      <h3>format(): the same text anywhere on the page</h3>
+      <p class="line" lang="en">Next goal: <output data-goal></output></p>
+    </div>
+    <button type="button" class="again" data-again>Count again</button>
+  </div>
+</div>
+
+<style>
+  .steady-example {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+  .steady {
+    width: 100%;
+  }
+  h3 {
+    margin: 1rem 0 0.25rem;
+    font-size: 0.875rem;
+    color: var(--color-text-subtle);
+  }
+  h3:first-child {
+    margin-top: 0;
+  }
+  .line {
+    margin: 0;
+    font-size: 1.5rem;
+    overflow-wrap: anywhere;
+  }
+  [data-counter] {
+    font-weight: 600;
+  }
+  .again {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { autoCounter, getCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('steady', root => {
+    const controller = autoCounter({ scope: root })
+    const downloads = getCounter(root.querySelector('[data-downloads]'))
+    root.querySelector('[data-goal]')!.textContent = downloads?.format(2_000_000) ?? ''
+    root.querySelector('[data-again]')!.addEventListener('click', () =>
+      root.querySelectorAll('[data-counter]').forEach(number => getCounter(number)?.start())
+    )
+    return controller
+  })
+</script>

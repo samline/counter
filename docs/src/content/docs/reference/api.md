@@ -46,6 +46,7 @@ Since 1.1.0. Commands act on every element of the controller, or only on `elemen
 | `update(options)`          | Merge options (attributes still win). Waiting elements show the new start, running ones count again            |
 | `refresh()`                | Read the `data-counter-*` attributes again                                                                     |
 | `getSnapshot()`            | One `{ element, value, state, from, to, progress }` per element; `progress` goes from `0` to `1`               |
+| `format(value, element?)`  | The text the counter shows for `value`, with the element's template, clock or date style (since 1.6.0)         |
 | `on(event, listener)`      | Listen to `start`, `update`, `pause`, `resume`, `reset` or `complete`; returns a function that stops listening |
 | `destroy()`                | Stop and restore the original markup                                                                           |
 
@@ -155,7 +156,9 @@ socket.addEventListener('message', event => gauge.retarget(Number(event.data), 6
 parseNumber(text: string, locale?: string): { value: number; decimals: number } | null
 ```
 
-Reads a number written for people in `locale`: `parseNumber('1.234,5 €', 'de')` returns `{ value: 1234.5, decimals: 1 }`. Grouping, currency symbols and spaces are ignored; a leading `-` or `−` makes it negative. Returns `null` when there is no digit. `counter` uses it when `data-counter` is empty.
+Reads a number written for people in `locale`: `parseNumber('1.234,5 €', 'de')` returns `{ value: 1234.5, decimals: 1 }`. Grouping, currency symbols and spaces are ignored; a leading `-` or `−` makes it negative. Returns `null` when there is no digit. `counter` uses it when `data-counter` is empty. Since 1.6.0 it reads decimal digits in any script: `parseNumber('١٬٢٣٤٫٥', 'ar')` returns `{ value: 1234.5, decimals: 1 }`.
+
+`digitValue(char)` returns the value of one digit in any script (`'٧'` and `'७'` are `7`), or `-1`. `numberingSystem(zero)` returns the `Intl` numbering system whose zero is `zero` (`'٠'` is `'arab'`), or `undefined` when the browser cannot tell.
 
 ## EASINGS
 
@@ -167,7 +170,7 @@ import { EASINGS } from '@samline/counter'
 
 Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS curve as a function (or `null` when the string is not a valid curve), and `isEasing(value)` tells whether a value is an easing name, a valid `cubic-bezier()` or a function.
 
-`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
+`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix, grouping and, since 1.6.0, the `zero` of the digits of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
 
 ## window.Counter
 

@@ -20,6 +20,7 @@ import {
   type NumberAnimation,
   resolveEasing,
   fractionDigits,
+  numberingSystem,
   parseNumber,
   readShape,
   readClock,
@@ -147,6 +148,9 @@ export const animateNumber = (options: AnimateNumberOptions): NumberAnimation =>
 const GROUPINGS = ['auto', 'true', 'false'] as const
 
 /** Compare texts regardless of the kind of spaces (French groups with a narrow no-break space). */
+/** Inline styles `steady` sets. */
+const STEADY = ['font-variant-numeric', 'display', 'min-inline-size']
+
 const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 interface Setup {
@@ -173,6 +177,8 @@ interface Setup {
   format: (value: number) => string
   /** The final value is the rendered text: put the original nodes back when done. */
   restore: boolean
+  /** Hold the width and use tabular digits while counting. */
+  steady: boolean
 }
 
 type Value = Pick<Setup, 'from' | 'to' | 'format' | 'step'>
@@ -229,9 +235,12 @@ const numberValue = (
     const custom = options.formatter
     format = value => custom(value, element)
   } else {
+    // Digits stay in the script the HTML writes them in: `١٬٢٣٤` counts in Arabic-Indic.
+    const system = shape && numberingSystem(shape.zero)
     const formatter = new Intl.NumberFormat(locale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
+      ...(system && { numberingSystem: system }),
       ...useGrouping,
       ...options.format,
     })
@@ -349,6 +358,7 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     unit: kind === 'date' ? DAY : 1,
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     live: readBoolean(element, 'data-counter-live', options.live ?? true),
+    steady: readBoolean(element, 'data-counter-steady', options.steady ?? false),
     ...outputsOf(element, options),
     start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
     // End on the original markup when it reads exactly like the final value.
@@ -440,6 +450,7 @@ const inert = (): CounterController => {
     update: () => controller,
     refresh: () => controller,
     getSnapshot: () => [],
+    format: () => '',
     on: () => noop,
     destroy: noop,
   })
@@ -552,6 +563,48 @@ export const counter = (
     setup.output?.(value, element, progress)
   }
 
+  // Inline styles `steady` sets, with what they held before, to restore on destroy.
+  const held = new Map<HTMLElement, string[]>()
+
+  const release = (element: HTMLElement) => {
+    const before = held.get(element)
+    if (!before) return
+    held.delete(element)
+    STEADY.forEach((name, i) =>
+      before[i] ? element.style.setProperty(name, before[i]!) : element.style.removeProperty(name)
+    )
+    if (!element.getAttribute('style')) element.removeAttribute('style')
+  }
+
+  /** Reserve the width of the wider of the start and final text, so nothing moves. */
+  const hold = (element: HTMLElement, from: number) => {
+    const { setup } = entries.get(element)!
+    if (!setup.steady) return release(element)
+    const { style } = element
+    if (!held.has(element))
+      held.set(
+        element,
+        STEADY.map(name => style.getPropertyValue(name))
+      )
+    style.setProperty('font-variant-numeric', 'tabular-nums')
+    // A min-width needs a box; inline text becomes an inline block.
+    if (getComputedStyle(element).display === 'inline') style.setProperty('display', 'inline-block')
+    style.removeProperty('min-inline-size')
+    const width = Math.max(
+      ...[from, setup.to].map(value => {
+        element.textContent = setup.format(snap(setup, value))
+        return element.getBoundingClientRect().width
+      })
+    )
+    // In em, so it follows the font size.
+    const size = parseFloat(getComputedStyle(element).fontSize)
+    if (width > 0)
+      style.setProperty(
+        'min-inline-size',
+        size > 0 ? `${Math.ceil((width / size) * 1000) / 1000}em` : `${Math.ceil(width)}px`
+      )
+  }
+
   const show = (element: HTMLElement, value: number) => {
     const entry = entries.get(element)!
     paint(element, snap(entry.setup, value))
@@ -585,6 +638,7 @@ export const counter = (
     stop(element)
     if (prefersReducedMotion()) return complete(element)
     const start = from ?? setup.from
+    hold(element, start)
     show(element, start)
     setState(element, 'counting')
     current.onStart?.(element)
@@ -614,7 +668,9 @@ export const counter = (
   /** Show the start value and wait. */
   const rewind = (element: HTMLElement) => {
     stop(element)
-    show(element, entries.get(element)!.setup.from)
+    const { from } = entries.get(element)!.setup
+    hold(element, from)
+    show(element, from)
     setState(element, 'pending')
   }
 
@@ -733,6 +789,7 @@ export const counter = (
       element.replaceChildren(...entry.nodes)
       element.removeAttribute(STATE_ATTRIBUTE)
       owners.delete(element)
+      release(element)
     })
     listeners.clear()
     styled.forEach(target => {
@@ -801,6 +858,10 @@ export const counter = (
               : Math.min(Math.max((value - setup.from) / span, 0), 1),
         }
       }),
+    format: (value: number, element?: Element) => {
+      const [target] = targets(element)
+      return target ? entries.get(target)!.setup.format(value) : ''
+    },
     on: (event: CounterEvent, listener: CounterListener) => {
       if (!active) return noop
       const set = listeners.get(event) ?? new Set()

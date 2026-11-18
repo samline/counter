@@ -33,12 +33,14 @@ describe('readShape', () => {
       suffix: '',
       integerDigits: 4,
       grouped: true,
+      zero: '0',
     })
     expect(readShape('8000.45 visits', 'en')).toEqual({
       prefix: '',
       suffix: ' visits',
       integerDigits: 4,
       grouped: false,
+      zero: '0',
     })
     expect(readShape('8.000,45 €', 'de')).toMatchObject({ suffix: ' €', grouped: true })
     // The sign belongs to the number, not to the prefix.

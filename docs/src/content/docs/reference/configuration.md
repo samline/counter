@@ -29,6 +29,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-live`       | present, or `false`                | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)                                               |
 | `data-counter-css-vars`   | present, `false`, or a selector    | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0)                                              |
 | `data-counter-output`     | selector                           | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
+| `data-counter-steady`     | present, or `false`                | Tabular digits and the width of the wider of the start and final text reserved, so nothing moves (since 1.6.0)                         |
 | `data-counter-grouping`   | `auto`, `true`, `false`            | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)                                                |
 | `data-counter-as`         | `number`, `time`, `date`           | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)                                               |
 | `data-counter-step`       | number                             | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)                                                      |
@@ -55,6 +56,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `live`                         | `true`                                 | Count to a new `data-counter` or `datetime` when it changes                                |
 | `cssVars`                      | `false`                                | `true`, or a selector for the closest ancestor, such as `'.card'`                          |
 | `output`                       | —                                      | A selector, element or list to write the value to, or `(value, element, progress) => void` |
+| `steady`                       | `false`                                | Tabular digits and a reserved width while counting, so the layout keeps still              |
 | `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups         |
 | `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                         |
 | `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact                |
@@ -85,6 +87,20 @@ Since 1.5.0:
 ```
 
 The [Motion example](../../guides/examples/#guide-motion) shows every curve side by side.
+
+## Steady layout and digits
+
+Since 1.6.0:
+
+- **Steady:** `data-counter-steady` sets `font-variant-numeric: tabular-nums` and a `min-inline-size` (in `em`, so it follows the font size) equal to the wider of the start and final text, and turns inline text into an inline block. The words after a growing number stay where they are, and the alignment of the parent still applies inside the box. It measures again for each new value from `set()` or a live attribute, changes nothing with reduced motion, and `destroy()` puts the original inline styles back.
+- **Digits in any script:** text written in Arabic-Indic (`١٬٢٣٤`), Persian, Devanagari (`१,२३४`), Bengali, Thai, full-width or other decimal digits is read as a number and counts in the same digits. Latin digits stay Latin, also in a language that writes others by default. `format: { numberingSystem: 'arab' }` chooses the digits yourself.
+
+```html
+<p><span data-counter data-counter-steady>1,250,000</span> downloads this year</p>
+<p lang="ar" dir="rtl"><span data-counter>١٬٢٥٠٬٠٠٠</span> تنزيل</p>
+```
+
+The [Steady layout example](../../guides/examples/#guide-steady) shows the difference side by side.
 
 ## Units of `from` and `to`
 

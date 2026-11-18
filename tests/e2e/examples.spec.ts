@@ -186,6 +186,42 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('steady numbers keep the line still and count in their own digits', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'steady'))
+    const numbers = page.locator('.steady [data-counter]')
+    const final = ['1,250,000', '1,250,000', '١٬٢٥٠٬٠٠٠', '१२,५०,०००']
+    await expect(page.locator('#goal')).toHaveText('2,000,000')
+    await expect(numbers).toHaveText(final, { timeout: 4000 })
+
+    // Record where the text after each number starts on every frame of a new count.
+    await page.evaluate(() => {
+      const lines = [...document.querySelectorAll('.steady .line')].slice(0, 2)
+      const edges: number[][] = []
+      Object.assign(window, { edges })
+      const frame = () => {
+        edges.push(
+          lines.map(line => {
+            const range = document.createRange()
+            range.selectNodeContents(line.lastChild!)
+            return Math.round(range.getBoundingClientRect().left)
+          })
+        )
+        if (edges.length < 60) requestAnimationFrame(frame)
+      }
+      requestAnimationFrame(frame)
+    })
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
+    await expect(numbers).toHaveText(final, { timeout: 4000 })
+    const edges: number[][] = await page.evaluate(() => (window as any).edges)
+    const moves = (index: number) => new Set(edges.map(edge => edge[index])).size
+    // Without steady the words move as the number grows; with it they stay put.
+    expect(moves(0)).toBeGreaterThan(1)
+    expect(moves(1)).toBe(1)
+    await expect(numbers.nth(1)).toHaveCSS('font-variant-numeric', 'tabular-nums')
+    expect(await numbers.nth(1).evaluate(node => node.style.minInlineSize)).toMatch(/em$/)
+  })
+
   test('easings, stagger and speed end on the rendered values', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'motion'))
     const easings = page.locator('.easings [data-counter]')

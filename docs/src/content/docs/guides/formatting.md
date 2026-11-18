@@ -181,7 +181,17 @@ counter('#score', { output: (value, element, progress) => gauge.setAttribute('d'
 
 ## A steady layout
 
-Digits have different widths in most fonts, so a number can wobble while it counts. Use tabular figures; when the number shares a line with other text, also reserve its final width:
+Digits have different widths in most fonts, so a number can wobble while it counts, and a number that grows from `0` to `1,250,000` pushes the words after it. Since 1.6.0, `data-counter-steady` (or `steady: true`) fixes both: tabular digits and the width of the wider of the start and final text, reserved from the start.
+
+```html
+<p><span data-counter data-counter-steady>1,250,000</span> downloads this year</p>
+```
+
+```js
+autoCounter({ steady: true })
+```
+
+The box keeps the alignment of its parent, so a centered stat stays centered. To do it in CSS instead, use tabular figures and a width of your own:
 
 ```css
 [data-counter] {
@@ -192,6 +202,26 @@ Digits have different widths in most fonts, so a number can wobble while it coun
   min-width: 6ch;
   text-align: end;
 }
+```
+
+## Digits in other scripts
+
+Since 1.6.0 a number written in Arabic-Indic, Persian, Devanagari, Bengali, Thai, full-width or other decimal digits counts in those digits, with the separators of its language:
+
+```html
+<p lang="ar" dir="rtl"><span data-counter>١٬٢٥٠٬٠٠٠</span> تنزيل</p>
+<p lang="hi"><span data-counter>१२,५०,०००</span> डाउनलोड</p>
+```
+
+Latin digits stay Latin, even in a language that writes others by default. To choose the digits yourself, pass `format: { numberingSystem: 'arab' }` (or `'deva'`, `'thai'`, `'latn'`…).
+
+## The same text anywhere
+
+`format(value, element?)` on the controller returns the text the counter would show for any value, with the element's template, language, clock or date style. Use it for a goal, a tooltip or a label next to the number:
+
+```js
+const downloads = counter('#downloads')
+document.querySelector('#goal').textContent = downloads.format(2_000_000) // "2,000,000"
 ```
 
 ## Reading text in any language

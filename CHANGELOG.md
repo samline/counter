@@ -2,6 +2,20 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `steady` option and `data-counter-steady` attribute: tabular digits and a `min-inline-size` reserved for the wider of the start and final text, so the words around a counting number stay still. `destroy()` restores the original inline styles.
+- Numbers written in Arabic-Indic, Persian, Devanagari, Bengali, Thai, full-width and other decimal digits are read from the text and count in the same digits. `digitValue()` and `numberingSystem()` helpers; `NumberShape` gains `zero`.
+- `format(value, element?)` on the controller: the text the counter shows for any value.
+- Steady layout example: a line with and without `steady`, Arabic and Devanagari numbers, and a goal written with `format()`.
+
+### Changed
+
+- Latin digits in the HTML stay Latin in languages whose default digits are others (Arabic, for example), following the rendered text as the template. Pass `format: { numberingSystem }` to choose.
+- Size budgets: 7.25 KB gzip for the main entry and the browser bundle (were 6.5 KB).
+
 ## [1.5.0] - 2026-11-18
 
 ### Added

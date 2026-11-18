@@ -68,7 +68,11 @@ You render `12,480`; the script shows the start value and counts back to it when
 
 ### Formatted for the language
 
-`Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text.
+`Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text, also in Arabic-Indic, Devanagari and other digits, which keep counting in their own script.
+
+### A steady layout
+
+`data-counter-steady` gives the digits equal widths and reserves the width of the final text, so the words after a growing number never move. `format(value)` on the controller writes any value the way the counter shows it, for goals and labels next to the number.
 
 ### Time-based easing
 
@@ -76,7 +80,7 @@ Counts by elapsed time, not frames, with six named curves (`ease-out`, `ease-out
 
 ### Control and events
 
-`counter()` returns a controller: `start()`, `pause()`, `resume()`, `reset()`, `finish()`, `update(options)`, `refresh()`, `getSnapshot()` and `on(event, listener)`, for one element or all of them. `start: 'manual'` waits for your `start()`, and `counter:start`, `counter:complete` and the other events bubble from each number. The controller is still callable as a cleanup.
+`counter()` returns a controller: `start()`, `pause()`, `resume()`, `reset()`, `finish()`, `update(options)`, `refresh()`, `getSnapshot()`, `format(value)` and `on(event, listener)`, for one element or all of them. `start: 'manual'` waits for your `start()`, and `counter:start`, `counter:complete` and the other events bubble from each number. The controller is still callable as a cleanup.
 
 ```js
 const clock = counter('#clock', { start: 'manual', easing: 'linear' })
@@ -117,14 +121,14 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ## API at a glance
 
-| API                          | Purpose                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                              |
-| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                  |
-| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                         |
-| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                               |
-| `getCounter(element)`        | The controller counting an element, or `null`.                                                                            |
-| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed. |
+| API                          | Purpose                                                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                      |
+| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                          |
+| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                 |
+| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                       |
+| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                    |
+| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed, steady. |
 
 ### Entrypoints
 

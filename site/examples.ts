@@ -97,6 +97,51 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'steady',
+    tab: 'Steady layout',
+    title: 'A still layout and digits in any script',
+    description:
+      'data-counter-steady gives the digits equal widths and reserves the width of the final text, so the words after a growing number stay where they are. Numbers written in Arabic-Indic, Devanagari or other digits count in those digits, and format() writes any value the way the counter shows it.',
+    files: {
+      html: `<div class="steady">
+  <h3>Without steady: the words after the number move</h3>
+  <p class="line" lang="en"><span data-counter>1,250,000</span> downloads this year</p>
+  <h3>With data-counter-steady: the line keeps still</h3>
+  <p class="line" lang="en"><span id="downloads" data-counter data-counter-steady>1,250,000</span> downloads this year</p>
+  <h3>Digits in other scripts count in that script</h3>
+  <p class="line" lang="ar" dir="rtl"><span data-counter data-counter-steady>١٬٢٥٠٬٠٠٠</span> تنزيل هذا العام</p>
+  <p class="line" lang="hi"><span data-counter data-counter-steady>१२,५०,०००</span> डाउनलोड इस साल</p>
+  <h3>format(): the same text anywhere on the page</h3>
+  <p class="line" lang="en">Next goal: <output id="goal"></output></p>
+</div>
+<button type="button" id="again">Count again</button>`,
+      css: `.steady h3 { margin: 1rem 0 0.25rem; font-size: 0.875rem; }
+.steady .line { margin: 0; font-size: 1.5rem; }
+.steady [data-counter] { font-weight: 600; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+// The goal is written like the number it belongs to: grouped, in its language.
+const downloads = Counter.getCounter(document.querySelector('#downloads'))
+document.querySelector('#goal').textContent = downloads.format(2000000)
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.steady [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+// The goal is written like the number it belongs to: grouped, in its language.
+const downloads = getCounter(document.querySelector('#downloads'))
+document.querySelector('#goal').textContent = downloads.format(2000000)
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.steady [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'repeat',
     tab: 'Repeat',
     title: 'Count down, and again on every visit',
