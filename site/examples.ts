@@ -149,6 +149,63 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'progress',
+    tab: 'Progress and CSS',
+    title: 'Progress bars, meters and CSS that follow the count',
+    description:
+      'data-counter-output writes the value to a progress, meter or input as it counts. data-counter-css-vars sets --counter-value and --counter-progress, from 0 to 1, on the number or on its closest match, so a ring or a bar follows it with CSS alone.',
+    files: {
+      html: `<div class="meters" lang="en">
+  <section>
+    <h3>Progress bar</h3>
+    <p class="big"><span data-counter="72" data-counter-output="#html-skill">72</span>%</p>
+    <progress id="html-skill" max="100" value="72">72%</progress>
+  </section>
+  <section>
+    <h3>Meter</h3>
+    <p class="big"><span data-counter="38.5" data-counter-output="#storage">38.5</span> GB of 50 GB</p>
+    <meter id="storage" min="0" max="50" high="45" value="38.5">38.5 GB</meter>
+  </section>
+  <section>
+    <h3>Ring from --counter-value</h3>
+    <div class="ring">
+      <span class="big" data-counter data-counter-css-vars=".ring">86%</span>
+    </div>
+  </section>
+  <section>
+    <h3>Goal from --counter-progress</h3>
+    <div class="track"><div class="fill"></div></div>
+    <p class="big"><span data-counter="2000" data-counter-grouping="true" data-counter-css-vars=".meters section">2000</span> steps</p>
+  </section>
+</div>
+<button type="button" id="again">Count again</button>`,
+      css: `.meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1.5rem; margin-bottom: 1rem; }
+.meters h3 { margin: 0 0 0.25rem; font-size: 0.875rem; }
+.big { margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+progress, meter { width: 100%; }
+/* --counter-value is the number on screen; --counter-progress goes from 0 to 1. */
+.ring { --counter-value: 86; display: grid; place-items: center; width: 7rem; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(closest-side, white 78%, transparent 80%),
+    conic-gradient(#c2410c calc(var(--counter-value) * 3.6deg), #e5e5e5 0); }
+.track { height: 0.75rem; border-radius: 1rem; background: #e5e5e5; overflow: hidden; margin-bottom: 0.5rem; }
+.meters section { --counter-progress: 1; }
+.fill { height: 100%; width: calc(var(--counter-progress) * 100%); background: #c2410c; }`,
+      js: `// Every [data-counter] counts on its own. Start now, so getCounter finds them.
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.meters [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.meters [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'live',
     tab: 'Live numbers',
     title: 'Numbers that change after they count',

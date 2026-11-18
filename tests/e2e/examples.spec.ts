@@ -155,4 +155,34 @@ test.describe('counter copyable examples', () => {
       )
       .toBe(true)
   })
+
+  test('progress, meter and CSS variables follow the count', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'progress'))
+    const numbers = page.locator('.meters [data-counter]')
+    await expect(numbers).toHaveText(['72', '38.5', '86%', '2,000'])
+    await expect(page.locator('#html-skill')).toHaveJSProperty('value', 72)
+    await expect(page.locator('#storage')).toHaveJSProperty('value', 38.5)
+    const progress = () =>
+      page
+        .locator('.ring')
+        .evaluate(ring => getComputedStyle(ring).getPropertyValue('--counter-value').trim())
+    await expect.poll(progress).toBe('86')
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect.poll(async () => Number(await progress())).toBeLessThan(86)
+    await expect
+      .poll(() =>
+        page.locator('.fill').evaluate(bar => bar.clientWidth / bar.parentElement!.clientWidth)
+      )
+      .toBeLessThan(1)
+    await expect
+      .poll(() => page.locator('#html-skill').evaluate(bar => (bar as HTMLProgressElement).value))
+      .toBeLessThan(72)
+    await expect(numbers).toHaveText(['72', '38.5', '86%', '2,000'])
+    await expect.poll(progress).toBe('86')
+    const fill = await page
+      .locator('.fill')
+      .evaluate(bar => bar.clientWidth / bar.parentElement!.clientWidth)
+    expect(fill).toBeCloseTo(1, 2)
+  })
 })

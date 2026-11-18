@@ -93,6 +93,15 @@ const items = counter('#items')
 document.querySelector('#add').addEventListener('click', () => items.increment())
 ```
 
+### Progress bars and CSS
+
+`data-counter-output` fills a `<progress>`, `<meter>` or input as the number counts, and `data-counter-css-vars` sets `--counter-value` and `--counter-progress` (`0` to `1`) on the number or a parent, for rings and bars in plain CSS.
+
+```html
+<span data-counter="72" data-counter-output="#skill">72</span>%
+<progress id="skill" max="100" value="72">72%</progress>
+```
+
 ### Clocks and dates
 
 `data-counter-as="time"` counts seconds in the pattern of the text, so `23:59:59` carries seconds into minutes and hours; `data-counter-as="date"` counts day by day up to a `datetime`, and months and years roll over on their own. `data-counter-step` shows whole steps, such as a week at a time.
@@ -108,14 +117,14 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ## API at a glance
 
-| API                          | Purpose                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------ |
-| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                               |
-| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                   |
-| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                          |
-| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                |
-| `getCounter(element)`        | The controller counting an element, or `null`.                                             |
-| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step. |
+| API                          | Purpose                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                       |
+| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                           |
+| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                  |
+| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                        |
+| `getCounter(element)`        | The controller counting an element, or `null`.                                                                     |
+| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output. |
 
 ### Entrypoints
 

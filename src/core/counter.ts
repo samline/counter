@@ -289,6 +289,18 @@ export interface CounterOptions {
    * numbers your server or script updates. Defaults to `true`.
    */
   live?: boolean
+  /**
+   * Set `--counter-value` and `--counter-progress` (`0` to `1`) on every
+   * frame: `true` on the element, or a selector for its closest ancestor,
+   * such as `'.card'`. Defaults to `false`.
+   */
+  cssVars?: boolean | string
+  /**
+   * Also write the value elsewhere: `<progress>`, `<meter>` and inputs get it
+   * as their value, other elements as `aria-valuenow`. A selector, element or
+   * list, or a function called on every frame.
+   */
+  output?: ElementTarget | CounterOutput
   /** Scroll container. Defaults to the viewport. */
   root?: Element | Document | null
   /** Grow or shrink the root box. Defaults to `'0px'`. */
@@ -308,6 +320,9 @@ export interface AutoCounterOptions extends CounterOptions {
   /** Also count matching elements added later. Defaults to `true`. */
   observe?: boolean
 }
+
+/** Receives the value on screen on every frame, with the counted element and progress (`0` to `1`). */
+export type CounterOutput = (value: number, element: HTMLElement, progress: number) => void
 
 /** Events of a counter controller. `update` runs on every frame and is not dispatched on the element. */
 export type CounterEvent = 'start' | 'update' | 'pause' | 'resume' | 'reset' | 'complete'

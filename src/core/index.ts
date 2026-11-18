@@ -22,6 +22,7 @@ export type {
   NumberShape,
   CounterState,
   CounterStart,
+  CounterOutput,
   CounterKind,
   ClockShape,
   CounterEvent,

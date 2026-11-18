@@ -25,6 +25,8 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-repeat`     | present, or `false`                 | Reset on leaving, count again on every entry                                              |
 | `data-counter-start`      | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
 | `data-counter-live`       | present, or `false`                 | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)  |
+| `data-counter-css-vars`   | present, `false`, or a selector     | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0) |
+| `data-counter-output`     | selector                            | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)      |
 | `data-counter-grouping`   | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
 | `data-counter-as`         | `number`, `time`, `date`            | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)  |
 | `data-counter-step`       | number                              | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)         |
@@ -33,31 +35,33 @@ Attributes win over options, so one call can set defaults and each number can ov
 
 ## Options
 
-| Option                         | Default                                | Description                                                                        |
-| ------------------------------ | -------------------------------------- | ---------------------------------------------------------------------------------- |
-| `from`                         | `0`                                    | Start value                                                                        |
-| `to`                           | —                                      | Final value when `data-counter` has no number; by default it is read from the text |
-| `duration`                     | `2000`                                 | Milliseconds                                                                       |
-| `delay`                        | `0`                                    | Milliseconds before counting                                                       |
-| `easing`                       | `'ease-out'`                           | A name or a function from progress (`0`–`1`) to eased progress                     |
-| `decimals`                     | from the target                        | Decimals to show                                                                   |
-| `locale`                       | closest `lang`                         | BCP 47 locale; an invalid one falls back to the browser's                          |
-| `format`                       | —                                      | `Intl.NumberFormat` options, for example `{ style: 'currency', currency: 'EUR' }`  |
-| `formatter(value, element)`    | —                                      | Returns the text yourself; replaces `locale`, `decimals` and `format`              |
-| `repeat`                       | `false`                                | Count again every time the number enters                                           |
-| `start`                        | `'visible'`                            | `'visible'`, `'load'` (right away) or `'manual'` (when you call `start()`)         |
-| `live`                         | `true`                                 | Count to a new `data-counter` or `datetime` when it changes                        |
-| `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups |
-| `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                 |
-| `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact        |
-| `dateFormat`                   | `{ dateStyle: 'long' }`                | `Intl.DateTimeFormat` options with `as: 'date'`                                    |
-| `root`                         | viewport                               | Scroll container to observe against                                                |
-| `rootMargin`                   | `'0px'`                                | Grows or shrinks the root                                                          |
-| `threshold`                    | `0.5`                                  | Share of the number that must be visible to start                                  |
-| `onStart(element)`             | —                                      | Counting starts                                                                    |
-| `onUpdate(value, element)`     | —                                      | Every frame, with the unformatted value                                            |
-| `onComplete(element)`          | —                                      | The final value is shown (also right away with reduced motion)                     |
-| `selector`, `scope`, `observe` | `'[data-counter]'`, `document`, `true` | `autoCounter` only                                                                 |
+| Option                         | Default                                | Description                                                                                |
+| ------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `from`                         | `0`                                    | Start value                                                                                |
+| `to`                           | —                                      | Final value when `data-counter` has no number; by default it is read from the text         |
+| `duration`                     | `2000`                                 | Milliseconds                                                                               |
+| `delay`                        | `0`                                    | Milliseconds before counting                                                               |
+| `easing`                       | `'ease-out'`                           | A name or a function from progress (`0`–`1`) to eased progress                             |
+| `decimals`                     | from the target                        | Decimals to show                                                                           |
+| `locale`                       | closest `lang`                         | BCP 47 locale; an invalid one falls back to the browser's                                  |
+| `format`                       | —                                      | `Intl.NumberFormat` options, for example `{ style: 'currency', currency: 'EUR' }`          |
+| `formatter(value, element)`    | —                                      | Returns the text yourself; replaces `locale`, `decimals` and `format`                      |
+| `repeat`                       | `false`                                | Count again every time the number enters                                                   |
+| `start`                        | `'visible'`                            | `'visible'`, `'load'` (right away) or `'manual'` (when you call `start()`)                 |
+| `live`                         | `true`                                 | Count to a new `data-counter` or `datetime` when it changes                                |
+| `cssVars`                      | `false`                                | `true`, or a selector for the closest ancestor, such as `'.card'`                          |
+| `output`                       | —                                      | A selector, element or list to write the value to, or `(value, element, progress) => void` |
+| `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups         |
+| `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                         |
+| `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact                |
+| `dateFormat`                   | `{ dateStyle: 'long' }`                | `Intl.DateTimeFormat` options with `as: 'date'`                                            |
+| `root`                         | viewport                               | Scroll container to observe against                                                        |
+| `rootMargin`                   | `'0px'`                                | Grows or shrinks the root                                                                  |
+| `threshold`                    | `0.5`                                  | Share of the number that must be visible to start                                          |
+| `onStart(element)`             | —                                      | Counting starts                                                                            |
+| `onUpdate(value, element)`     | —                                      | Every frame, with the unformatted value                                                    |
+| `onComplete(element)`          | —                                      | The final value is shown (also right away with reduced motion)                             |
+| `selector`, `scope`, `observe` | `'[data-counter]'`, `document`, `true` | `autoCounter` only                                                                         |
 
 ## Units of `from` and `to`
 

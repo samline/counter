@@ -32,6 +32,7 @@ import {
   DATE_STYLES,
   DAY,
   type CounterStart,
+  type CounterOutput,
   type CounterState,
   type CounterEvent,
   type CounterListener,
@@ -160,6 +161,11 @@ interface Setup {
   step: number
   /** Count to the new value when `data-counter` or `datetime` changes. */
   live: boolean
+  /** Where `--counter-value` and `--counter-progress` are set, or `null`. */
+  vars: HTMLElement | null
+  /** Elements that receive the value: `<progress>`, `<meter>`, inputs or `aria-valuenow`. */
+  outputs: Element[]
+  output: CounterOutput | null
   format: (value: number) => string
   /** The final value is the rendered text: put the original nodes back when done. */
   restore: boolean
@@ -337,11 +343,57 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     live: readBoolean(element, 'data-counter-live', options.live ?? true),
+    ...outputsOf(element, options),
     start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
     // End on the original markup when it reads exactly like the final value.
     restore: normalize(value.format(value.to)) === normalize(original),
   }
 }
+
+/** Run a selector without letting an invalid one throw. */
+const attempt = <T>(read: () => T, fallback: T): T => {
+  try {
+    return read()
+  } catch {
+    return fallback
+  }
+}
+
+const outputsOf = (
+  element: HTMLElement,
+  options: CounterOptions
+): Pick<Setup, 'vars' | 'outputs' | 'output'> => {
+  const varsAttribute = element.getAttribute('data-counter-css-vars')?.trim()
+  const vars =
+    varsAttribute === undefined
+      ? (options.cssVars ?? false)
+      : varsAttribute === '' || varsAttribute === 'true'
+        ? true
+        : varsAttribute === 'false'
+          ? false
+          : varsAttribute
+  const target = element.getAttribute('data-counter-output')?.trim() || options.output
+  return {
+    vars:
+      vars === true
+        ? element
+        : typeof vars === 'string'
+          ? attempt(() => element.closest<HTMLElement>(vars), null)
+          : null,
+    outputs:
+      !target || typeof target === 'function'
+        ? []
+        : attempt(() => Array.from(resolveElements(target)), [] as Element[]),
+    output: typeof target === 'function' ? target : null,
+  }
+}
+
+const isField = (
+  element: Element
+): element is HTMLProgressElement | HTMLMeterElement | HTMLInputElement =>
+  element instanceof HTMLProgressElement ||
+  element instanceof HTMLMeterElement ||
+  element instanceof HTMLInputElement
 
 /** Show only whole steps away from the start; the end stays exact. */
 const snap = ({ from, to, step }: Setup, value: number) =>
@@ -452,9 +504,37 @@ export const counter = (
     element.setAttribute(STATE_ATTRIBUTE, state)
   }
 
+  // What outputs held before, and where CSS variables were set, to restore on destroy.
+  const originals = new Map<Element, { value: string; aria: string | null }>()
+  const styled = new Set<HTMLElement>()
+
+  /** Write the value to CSS variables and outputs. */
+  const paint = (element: HTMLElement, value: number) => {
+    const entry = entries.get(element)!
+    entry.value = value
+    const { setup } = entry
+    const span = setup.to - setup.from
+    const progress = span === 0 ? 1 : Math.min(Math.max((value - setup.from) / span, 0), 1)
+    if (setup.vars) {
+      styled.add(setup.vars)
+      setup.vars.style.setProperty('--counter-value', `${value}`)
+      setup.vars.style.setProperty('--counter-progress', `${progress}`)
+    }
+    setup.outputs.forEach(output => {
+      if (!originals.has(output))
+        originals.set(output, {
+          value: isField(output) ? `${output.value}` : '',
+          aria: output.getAttribute('aria-valuenow'),
+        })
+      if (isField(output)) output.value = value as never
+      else output.setAttribute('aria-valuenow', `${value}`)
+    })
+    setup.output?.(value, element, progress)
+  }
+
   const show = (element: HTMLElement, value: number) => {
     const entry = entries.get(element)!
-    entry.value = snap(entry.setup, value)
+    paint(element, snap(entry.setup, value))
     element.textContent = entry.setup.format(entry.value)
   }
 
@@ -467,7 +547,7 @@ export const counter = (
   const showFinal = (element: HTMLElement) => {
     const entry = entries.get(element)!
     if (entry.setup.restore) {
-      entry.value = entry.setup.to
+      paint(element, entry.setup.to)
       element.replaceChildren(...entry.nodes)
     } else show(element, entry.setup.to)
   }
@@ -543,7 +623,7 @@ export const counter = (
       // Keep the text as rendered; nothing moves.
       stop(element)
       element.replaceChildren(...entries.get(element)!.nodes)
-      entries.get(element)!.value = entries.get(element)!.setup.to
+      paint(element, entries.get(element)!.setup.to)
       setState(element, 'done')
       current.onComplete?.(element)
       emit('complete', element)
@@ -631,6 +711,16 @@ export const counter = (
       owners.delete(element)
     })
     listeners.clear()
+    styled.forEach(target => {
+      target.style.removeProperty('--counter-value')
+      target.style.removeProperty('--counter-progress')
+      if (!target.getAttribute('style')) target.removeAttribute('style')
+    })
+    originals.forEach(({ value, aria }, output) => {
+      if (isField(output)) output.value = value as never
+      if (aria === null) output.removeAttribute('aria-valuenow')
+      else output.setAttribute('aria-valuenow', aria)
+    })
   }
 
   const controller: CounterController = Object.assign(() => destroy(), {

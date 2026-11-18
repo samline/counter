@@ -2,6 +2,20 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `output` option and `data-counter-output` attribute: write the value on screen to `<progress>`, `<meter>` and inputs, or as `aria-valuenow` on other elements, on every frame. `output` also takes a function `(value, element, progress)`.
+- `cssVars` option and `data-counter-css-vars` attribute: set `--counter-value` and `--counter-progress` (`0` to `1`) on the number, or on its closest ancestor matching a selector.
+- `destroy()` removes those custom properties and restores the values and `aria-valuenow` of outputs.
+- `CounterOutput` type.
+- Progress and CSS example: a progress bar, a meter, a ring and a goal bar.
+
+### Changed
+
+- Size budgets: 6 KB gzip for the main entry and the browser bundle (were 5.6 KB).
+
 ## [1.3.0] - 2026-11-18
 
 ### Added

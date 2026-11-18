@@ -143,6 +143,42 @@ counter('#flight', {
 
 `formatter` also replaces the clock and the date text when `data-counter-as` is set.
 
+## Progress bars, meters and CSS
+
+Since 1.4.0 the number can drive other elements while it counts.
+
+`data-counter-output` writes the value on screen to a `<progress>`, `<meter>` or input as their value, and to any other element as `aria-valuenow`. Keep the final value in their HTML too, so the page is right without JavaScript:
+
+```html
+<span data-counter="72" data-counter-output="#html-skill">72</span>%
+<progress id="html-skill" max="100" value="72">72%</progress>
+```
+
+`data-counter-css-vars` sets two custom properties on every frame: `--counter-value`, the number on screen, and `--counter-progress`, from `0` at the start value to `1` at the final value. Without a value they go on the number itself; with a selector, on its closest match, so a parent can use them:
+
+```html
+<div class="ring">
+  <span data-counter data-counter-css-vars=".ring">86%</span>
+</div>
+```
+
+```css
+.ring {
+  --counter-value: 86; /* without JavaScript */
+  background:
+    radial-gradient(closest-side, white 78%, transparent 80%),
+    conic-gradient(currentColor calc(var(--counter-value) * 3.6deg), #e5e5e5 0);
+}
+```
+
+In JavaScript, `output` also takes a function, called on every frame with the value, the element and the progress, for SVG, canvas or anything else:
+
+```js
+counter('#score', { output: (value, element, progress) => gauge.setAttribute('d', arc(progress)) })
+```
+
+`destroy()` removes the custom properties and puts back the values and `aria-valuenow` the outputs had. The [Progress and CSS example](../examples/#guide-progress) shows a progress bar, a meter, a ring and a goal bar.
+
 ## A steady layout
 
 Digits have different widths in most fonts, so a number can wobble while it counts. Use tabular figures; when the number shares a line with other text, also reserve its final width:
