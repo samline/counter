@@ -1,17 +1,11 @@
-export {
-  ATTRIBUTE,
-  EASINGS,
-  STATE_ATTRIBUTE,
-  animateNumber,
-  autoCounter,
-  counter,
-  parseNumber,
-  type AnimateNumberOptions,
-  type AutoCounterOptions,
-  type AutoInitController,
-  type CounterOptions,
-  type CounterState,
-  type Easing,
-  type EasingName,
-  type ElementTarget,
+export { EASINGS, parseNumber, ATTRIBUTE, STATE_ATTRIBUTE } from './counter.js'
+export type {
+  EasingName,
+  Easing,
+  AnimateNumberOptions,
+  CounterState,
+  CounterOptions,
+  AutoCounterOptions,
+  AutoInitController,
+  ElementTarget,
 } from './counter.js'

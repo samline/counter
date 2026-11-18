@@ -1,5 +1,5 @@
-import { animateNumber, autoCounter, counter } from '../core/counter.js'
-import type { AutoInitController } from '../core/counter.js'
+import { animateNumber, autoCounter, counter } from '../vanilla/index.js'
+import type { AutoInitController } from '../vanilla/index.js'
 
 /**
  * Classic script for pages without a build step. It counts every
