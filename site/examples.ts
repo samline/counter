@@ -118,11 +118,42 @@ autoCounter({ root: document.querySelector('#page') })`,
     },
   },
   {
+    id: 'clock',
+    tab: 'Clock and calendar',
+    title: 'Clocks and dates that carry on their own',
+    description:
+      'data-counter-as="time" counts seconds in the pattern of the text (23:59:59 or 90:00), so seconds carry into minutes and hours. data-counter-as="date" counts day by day up to the datetime, and months and years roll over on their own. data-counter-step shows whole steps, such as one week at a time. No JavaScript options.',
+    files: {
+      html: `<dl class="clocks" lang="en">
+  <div><dt>A day</dt><dd><time data-counter data-counter-as="time" data-counter-duration="6000" data-counter-easing="linear">23:59:59</time></dd></div>
+  <div><dt>A match</dt><dd><time data-counter data-counter-as="time" data-counter-duration="6000" data-counter-easing="linear">90:00</time></dd></div>
+  <div><dt>A work day</dt><dd><time data-counter data-counter-as="time" data-counter-from="08:00:00" data-counter-duration="6000">17:30:00</time></dd></div>
+  <div><dt>A year</dt><dd><time data-counter data-counter-as="date" datetime="2026-12-31" data-counter-duration="6000" data-counter-easing="linear">December 31, 2026</time></dd></div>
+  <div><dt>Week by week</dt><dd><time data-counter data-counter-as="date" datetime="2026-12-31" data-counter-step="7" data-counter-date-style="medium" data-counter-duration="6000">Dec 31, 2026</time></dd></div>
+</dl>
+<button type="button" id="again">Count again</button>`,
+      css: `.clocks { display: grid; gap: 0.5rem; margin: 0 0 1rem; }
+.clocks div { display: grid; grid-template-columns: 8rem auto; gap: 1rem; align-items: baseline; }
+.clocks dd { margin: 0; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }`,
+      js: `// Every [data-counter] counts on its own; the button starts them again.
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.clocks time').forEach(time => Counter.getCounter(time)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.clocks time').forEach(time => getCounter(time)?.start())
+)`,
+    },
+  },
+  {
     id: 'controls',
     tab: 'Controls',
     title: 'Start, pause and finish a simulated clock',
     description:
-      'start: manual waits for start(). The controller pauses, resumes, resets and finishes, and its events report the state. The clock counts seconds; the formatter carries them into minutes and hours.',
+      'start: manual waits for start(). The controller pauses, resumes, resets and finishes, and its events report the state. as: "time" counts seconds in the pattern of the text, so they carry into minutes and hours.',
     files: {
       html: `<div class="clock">
   <time id="clock" class="big">23:59:59</time>
@@ -139,18 +170,8 @@ autoCounter({ root: document.querySelector('#page') })`,
 .big { font-size: 2.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 #status { margin: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }`,
-      js: `// One day in eight seconds: count seconds, show hours, minutes and seconds.
-const pad = number => String(number).padStart(2, '0')
-const clock = Counter.counter('#clock', {
-  to: 86399,
-  duration: 8000,
-  easing: 'linear',
-  start: 'manual',
-  formatter: value => {
-    const seconds = Math.floor(value)
-    return \`\${pad(Math.floor(seconds / 3600))}:\${pad(Math.floor(seconds / 60) % 60)}:\${pad(seconds % 60)}\`
-  },
-})
+      js: `// One day in eight seconds, read from the text: 23:59:59.
+const clock = Counter.counter('#clock', { as: 'time', duration: 8000, easing: 'linear', start: 'manual' })
 
 const status = document.querySelector('#status')
 const labels = { start: 'Counting', pause: 'Paused', resume: 'Counting', complete: 'Done', reset: 'Ready' }
@@ -161,18 +182,8 @@ document.querySelectorAll('[data-action]').forEach(button =>
 )`,
       esm: `import { counter } from '@samline/counter'
 
-// One day in eight seconds: count seconds, show hours, minutes and seconds.
-const pad = number => String(number).padStart(2, '0')
-const clock = counter('#clock', {
-  to: 86399,
-  duration: 8000,
-  easing: 'linear',
-  start: 'manual',
-  formatter: value => {
-    const seconds = Math.floor(value)
-    return \`\${pad(Math.floor(seconds / 3600))}:\${pad(Math.floor(seconds / 60) % 60)}:\${pad(seconds % 60)}\`
-  },
-})
+// One day in eight seconds, read from the text: 23:59:59.
+const clock = counter('#clock', { as: 'time', duration: 8000, easing: 'linear', start: 'manual' })
 
 const status = document.querySelector('#status')
 const labels = { start: 'Counting', pause: 'Paused', resume: 'Counting', complete: 'Done', reset: 'Ready' }

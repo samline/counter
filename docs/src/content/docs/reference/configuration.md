@@ -13,18 +13,22 @@ sidebar:
 
 Attributes win over options, so one call can set defaults and each number can override them.
 
-| Attribute               | Value                               | Description                                                                               |
-| ----------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| `data-counter`          | number, or empty                    | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text. |
-| `data-counter-from`     | number                              | Start value. Higher than the target counts down.                                          |
-| `data-counter-duration` | milliseconds                        | How long counting takes                                                                   |
-| `data-counter-delay`    | milliseconds                        | Wait before counting                                                                      |
-| `data-counter-easing`   | `ease-out`, `ease-in-out`, `linear` | Curve of the count                                                                        |
-| `data-counter-decimals` | number                              | Decimals to show                                                                          |
-| `data-counter-locale`   | BCP 47 tag                          | Language for formatting and for reading the text                                          |
-| `data-counter-repeat`   | present, or `false`                 | Reset on leaving, count again on every entry                                              |
-| `data-counter-start`    | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
-| `data-counter-grouping` | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
+| Attribute                 | Value                               | Description                                                                               |
+| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| `data-counter`            | number, or empty                    | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text. |
+| `data-counter-from`       | number                              | Start value. Higher than the target counts down.                                          |
+| `data-counter-duration`   | milliseconds                        | How long counting takes                                                                   |
+| `data-counter-delay`      | milliseconds                        | Wait before counting                                                                      |
+| `data-counter-easing`     | `ease-out`, `ease-in-out`, `linear` | Curve of the count                                                                        |
+| `data-counter-decimals`   | number                              | Decimals to show                                                                          |
+| `data-counter-locale`     | BCP 47 tag                          | Language for formatting and for reading the text                                          |
+| `data-counter-repeat`     | present, or `false`                 | Reset on leaving, count again on every entry                                              |
+| `data-counter-start`      | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
+| `data-counter-grouping`   | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
+| `data-counter-as`         | `number`, `time`, `date`            | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)  |
+| `data-counter-step`       | number                              | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)         |
+| `data-counter-date-style` | `full`, `long`, `medium`, `short`   | Date format with `as="date"`; default `long` (since 1.2.0)                                |
+| `datetime`                | ISO date                            | Final date with `as="date"`; `data-counter-from` takes an ISO date too                    |
 
 ## Options
 
@@ -42,6 +46,9 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `repeat`                       | `false`                                | Count again every time the number enters                                           |
 | `start`                        | `'visible'`                            | `'visible'`, `'load'` (right away) or `'manual'` (when you call `start()`)         |
 | `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups |
+| `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                 |
+| `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact        |
+| `dateFormat`                   | `{ dateStyle: 'long' }`                | `Intl.DateTimeFormat` options with `as: 'date'`                                    |
 | `root`                         | viewport                               | Scroll container to observe against                                                |
 | `rootMargin`                   | `'0px'`                                | Grows or shrinks the root                                                          |
 | `threshold`                    | `0.5`                                  | Share of the number that must be visible to start                                  |
@@ -49,6 +56,10 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `onUpdate(value, element)`     | —                                      | Every frame, with the unformatted value                                            |
 | `onComplete(element)`          | —                                      | The final value is shown (also right away with reduced motion)                     |
 | `selector`, `scope`, `observe` | `'[data-counter]'`, `document`, `true` | `autoCounter` only                                                                 |
+
+## Units of `from` and `to`
+
+With `as: 'time'`, `from` and `to` are seconds (`data-counter-from` also accepts a clock such as `08:00:00`). With `as: 'date'`, they are timestamps in milliseconds; `from` defaults to January 1 of the final date's year. `onUpdate`, listeners and `getSnapshot()` report values in the same unit, already rounded to the step.
 
 ## Final value and decimals
 

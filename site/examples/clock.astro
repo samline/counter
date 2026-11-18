@@ -1,0 +1,66 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="clocks" data-preview="clock">
+    <dl lang="en">
+      <div><dt>A day</dt><dd><time data-counter data-counter-as="time" data-counter-duration="6000" data-counter-easing="linear">23:59:59</time></dd></div>
+      <div><dt>A match</dt><dd><time data-counter data-counter-as="time" data-counter-duration="6000" data-counter-easing="linear">90:00</time></dd></div>
+      <div><dt>A work day</dt><dd><time data-counter data-counter-as="time" data-counter-from="08:00:00" data-counter-duration="6000">17:30:00</time></dd></div>
+      <div><dt>A year</dt><dd><time data-counter data-counter-as="date" datetime="2026-12-31" data-counter-duration="6000" data-counter-easing="linear">December 31, 2026</time></dd></div>
+      <div><dt>Week by week</dt><dd><time data-counter data-counter-as="date" datetime="2026-12-31" data-counter-step="7" data-counter-date-style="medium" data-counter-duration="6000">Dec 31, 2026</time></dd></div>
+    </dl>
+    <button type="button" class="again" data-again>Count again</button>
+  </div>
+</div>
+
+<style>
+  .clocks {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+  dl {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: 8rem auto;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  dt {
+    color: var(--color-text-subtle);
+  }
+  dd {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .again {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { autoCounter, getCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('clock', root => {
+    const controller = autoCounter({ scope: root })
+    root.querySelector('[data-again]')!.addEventListener('click', () =>
+      root.querySelectorAll('dd time').forEach(time => getCounter(time)?.start())
+    )
+    return controller
+  })
+</script>

@@ -127,7 +127,7 @@ import { EASINGS } from '@samline/counter'
 // { linear, 'ease-out', 'ease-in-out' }: functions from progress to eased progress
 ```
 
-`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. `@samline/counter/vanilla` exports `counter` as its default export.
+`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind` and `ClockShape` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
 
 ## window.Counter
 

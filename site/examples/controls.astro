@@ -49,7 +49,6 @@ import './_shared.css'
   import { counter, type CounterEvent } from '@samline/counter'
   import { preview } from '../../shared/lib/preview'
 
-  const pad = (number: number) => String(number).padStart(2, '0')
   const labels: Partial<Record<CounterEvent, string>> = {
     start: 'Counting',
     pause: 'Paused',
@@ -61,14 +60,10 @@ import './_shared.css'
 
   preview('controls', root => {
     const clock = counter(root.querySelector('[data-clock]'), {
-      to: 86399,
+      as: 'time',
       duration: 8000,
       easing: 'linear',
       start: 'manual',
-      formatter: value => {
-        const seconds = Math.floor(value)
-        return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
-      },
     })
     const status = root.querySelector<HTMLElement>('[data-status]')!
     Object.entries(labels).forEach(([event, label]) =>

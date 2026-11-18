@@ -115,6 +115,74 @@ export const readShape = (text: string, locale?: string): NumberShape | null => 
   }
 }
 
+/* ------------------------------------------------------------------------ */
+/* Clocks and dates                                                          */
+/* ------------------------------------------------------------------------ */
+
+/** How a clock is written: `'23:59:59'` has three fields, `'90:00'` two. */
+export interface ClockShape {
+  /** Total seconds. */
+  seconds: number
+  /** `3` for `h:mm:ss`, `2` for `m:ss`. */
+  fields: 2 | 3
+  /** Whether the first field is written with two digits (`01:05:00`, not `1:05:00`). */
+  padded: boolean
+  prefix: string
+  suffix: string
+}
+
+const CLOCK = /(\d+):(\d{1,2})(?::(\d{1,2}))?/
+
+/**
+ * Read a clock written in `text`: `'23:59:59'` is 86399 seconds in hours,
+ * minutes and seconds; `'90:00'` is 5400 seconds in minutes and seconds.
+ * Returns `null` without one.
+ */
+export const readClock = (text: string): ClockShape | null => {
+  const match = CLOCK.exec(text)
+  if (!match) return null
+  const [whole, first = '', second = '', third] = match
+  const fields = third === undefined ? 2 : 3
+  const seconds =
+    fields === 3
+      ? Number(first) * 3600 + Number(second) * 60 + Number(third)
+      : Number(first) * 60 + Number(second)
+  return {
+    seconds,
+    fields,
+    padded: first.length >= 2,
+    prefix: text.slice(0, match.index),
+    suffix: text.slice(match.index + whole.length),
+  }
+}
+
+/** Write `seconds` as a clock with `fields` fields, using `digits` for each number. */
+export const writeClock = (
+  seconds: number,
+  fields: 2 | 3,
+  padded: boolean,
+  digits: (value: number, pad: boolean) => string
+) => {
+  const total = Math.max(0, Math.floor(seconds))
+  const parts =
+    fields === 3
+      ? [Math.floor(total / 3600), Math.floor(total / 60) % 60, total % 60]
+      : [Math.floor(total / 60), total % 60]
+  return parts.map((part, i) => digits(part, i > 0 || padded)).join(':')
+}
+
+export const DAY = 86_400_000
+
+/** A date written as `2026-12-31`, without a time, is a calendar day in UTC. */
+export const isDateOnly = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value.trim())
+
+/** Milliseconds of a date string or timestamp, or `null`. */
+export const readDate = (value: string | number | null | undefined): number | null => {
+  if (value === null || value === undefined || value === '') return null
+  const time = typeof value === 'number' ? value : Date.parse(value)
+  return Number.isFinite(time) ? time : null
+}
+
 export const safeLocale = (locale: string | undefined) => {
   try {
     return Intl.NumberFormat.supportedLocalesOf(locale ?? []).length ? locale : undefined
@@ -132,6 +200,16 @@ export type CounterState = 'pending' | 'counting' | 'paused' | 'done'
 
 export const STARTS = ['visible', 'load', 'manual'] as const
 
+export const KINDS = ['number', 'time', 'date'] as const
+
+/**
+ * What the number means: a plain `number` (default), a `time` in seconds
+ * shown as a clock (`23:59:59`), or a `date` counted day by day.
+ */
+export type CounterKind = (typeof KINDS)[number]
+
+export const DATE_STYLES = ['full', 'long', 'medium', 'short'] as const
+
 /**
  * When counting starts: once the element is `visible` (default), on `load`
  * (as soon as it is set up), or `manual` (when you call `start()`).
@@ -139,13 +217,32 @@ export const STARTS = ['visible', 'load', 'manual'] as const
 export type CounterStart = (typeof STARTS)[number]
 
 export interface CounterOptions {
-  /** Starting value. Defaults to `0`. */
+  /**
+   * What the number means. `'time'` counts seconds and shows a clock in the
+   * pattern of the text (`23:59:59` or `90:00`); `'date'` counts days between
+   * two dates. Defaults to `'number'`.
+   */
+  as?: CounterKind
+  /**
+   * Starting value. Defaults to `0`. Seconds with `as: 'time'`; a timestamp
+   * in milliseconds with `as: 'date'`, where it defaults to January 1 of the
+   * final date's year.
+   */
   from?: number
   /**
    * Final value when the element has no number in `data-counter`. By default
-   * it is read from the element's text, formatted for its locale.
+   * it is read from the element's text, formatted for its locale. A timestamp
+   * in milliseconds with `as: 'date'`, where `datetime` comes first.
    */
   to?: number
+  /**
+   * Show only whole steps of the count: `5` counts 0, 5, 10… Seconds with
+   * `as: 'time'` (default `1`) and days with `as: 'date'` (default `1`).
+   * The final value is always shown exactly.
+   */
+  step?: number
+  /** `Intl.DateTimeFormat` options for `as: 'date'`. Defaults to `{ dateStyle: 'long' }`. */
+  dateFormat?: Intl.DateTimeFormatOptions
   /** Milliseconds. Defaults to `2000`. */
   duration?: number
   /** Milliseconds before counting starts. Defaults to `0`. */

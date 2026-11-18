@@ -100,4 +100,18 @@ test.describe('counter copyable examples', () => {
     await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
     await expect(numbers).toHaveText(expected)
   })
+
+  test('clocks and dates carry and end on the rendered text', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'clock'))
+    const times = page.locator('.clocks time')
+    const rendered = ['23:59:59', '90:00', '17:30:00', 'December 31, 2026', 'Dec 31, 2026']
+    await expect(times.nth(3)).toHaveAttribute('data-counter-state', 'counting')
+    await expect(times.nth(3)).toHaveText(
+      /^(January|February|March|April|May|June|July|August|September|October|November|December) \d+, 2026$/
+    )
+    await expect(times).toHaveText(rendered, { timeout: 10_000 })
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(times.first()).toHaveAttribute('data-counter-state', 'counting')
+    await expect(times).toHaveText(rendered, { timeout: 10_000 })
+  })
 })

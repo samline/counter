@@ -2,6 +2,19 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `as` option and `data-counter-as` attribute. `'time'` counts seconds in the pattern of the text (`23:59:59` or `90:00`), carrying seconds into minutes and hours; `data-counter-from` accepts a clock. `'date'` counts day by day up to the `datetime` (or an ISO date in `data-counter`), from January 1 of that year or `data-counter-from`, formatted with `Intl.DateTimeFormat` (`data-counter-date-style` or `dateFormat`), and ends on the rendered text.
+- `step` option and `data-counter-step` attribute: show whole steps only, in units, seconds or days; the final value stays exact.
+- `readClock`, `writeClock` and `readDate` helpers; `CounterKind` and `ClockShape` types.
+- Clock and calendar example. The Controls example uses `as: 'time'` instead of a formatter.
+
+### Changed
+
+- Size budgets: 5.3 KB gzip for the main entry and the browser bundle (were 4.4 and 4.45 KB).
+
 ## [1.1.0] - 2026-11-18
 
 ### Added

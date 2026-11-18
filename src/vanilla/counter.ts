@@ -21,8 +21,15 @@ import {
   fractionDigits,
   parseNumber,
   readShape,
+  readClock,
+  writeClock,
+  readDate,
+  isDateOnly,
   safeLocale,
   STARTS,
+  KINDS,
+  DATE_STYLES,
+  DAY,
   type CounterStart,
   type CounterState,
   type CounterEvent,
@@ -137,24 +144,30 @@ interface Setup {
   easing: Easing
   repeat: boolean
   start: CounterStart
+  /** Whole steps shown while counting, in the unit of the value; `0` for none. */
+  step: number
   format: (value: number) => string
   /** The final value is the rendered text: put the original nodes back when done. */
   restore: boolean
 }
 
-const prepare = (element: HTMLElement, original: string, options: CounterOptions): Setup | null => {
-  const locale = safeLocale(
-    readString(element, 'data-counter-locale', '') ||
-      options.locale ||
-      element.closest('[lang]')?.getAttribute('lang') ||
-      undefined
-  )
+type Value = Pick<Setup, 'from' | 'to' | 'format' | 'step'>
 
-  // Final value: the attribute, then the option, then the visible text.
+const readFinal = (element: HTMLElement) => {
   const raw = element.getAttribute(ATTRIBUTE)?.trim() ?? ''
-  const fromAttribute = raw && Number.isFinite(Number(raw)) ? Number(raw) : null
-  const parsed = parseNumber(original, locale)
-  const fromText = fromAttribute === null && options.to === undefined ? parsed : null
+  return { raw, number: raw && Number.isFinite(Number(raw)) ? Number(raw) : null }
+}
+
+const numberValue = (
+  element: HTMLElement,
+  original: string,
+  options: CounterOptions,
+  locale: string | undefined
+): Value | null => {
+  // Final value: the attribute, then the option, then the visible text.
+  const { raw, number: fromAttribute } = readFinal(element)
+  const fromText =
+    fromAttribute === null && options.to === undefined ? parseNumber(original, locale) : null
   const to = fromAttribute ?? options.to ?? fromText?.value
   if (to === undefined) return null
 
@@ -209,21 +222,115 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     }
   }
 
-  const easingAttribute = element.getAttribute('data-counter-easing')?.trim()
-
   return {
     from: readNumber(element, 'data-counter-from', options.from ?? 0),
     to,
+    format,
+    step: readNumber(element, 'data-counter-step', options.step ?? 0),
+  }
+}
+
+const timeValue = (
+  element: HTMLElement,
+  original: string,
+  options: CounterOptions,
+  locale: string | undefined
+): Value | null => {
+  const clock = readClock(original)
+  const to = readFinal(element).number ?? options.to ?? clock?.seconds
+  if (to === undefined) return null
+
+  const fromAttribute = element.getAttribute('data-counter-from')?.trim() ?? ''
+  const from = fromAttribute.includes(':')
+    ? (readClock(fromAttribute)?.seconds ?? 0)
+    : readNumber(element, 'data-counter-from', options.from ?? 0)
+
+  const fields = clock?.fields ?? (Math.max(from, to) >= 3600 ? 3 : 2)
+  const padded = clock?.padded ?? true
+  const one = new Intl.NumberFormat(locale, { useGrouping: false })
+  const two = new Intl.NumberFormat(locale, { useGrouping: false, minimumIntegerDigits: 2 })
+  const digits = (value: number, pad: boolean) => (pad ? two : one).format(value)
+  const custom = options.formatter
+
+  return {
+    from,
+    to,
+    format: custom
+      ? value => custom(value, element)
+      : value =>
+          (clock?.prefix ?? '') + writeClock(value, fields, padded, digits) + (clock?.suffix ?? ''),
+    step: readNumber(element, 'data-counter-step', options.step ?? 1),
+  }
+}
+
+const dateValue = (
+  element: HTMLElement,
+  options: CounterOptions,
+  locale: string | undefined
+): Value | null => {
+  const written = element.getAttribute('datetime') || readFinal(element).raw
+  const to = readDate(written) ?? readDate(options.to)
+  if (to === null) return null
+  const utc = isDateOnly(written)
+  const year = new Date(to)
+
+  const fromAttribute = element.getAttribute('data-counter-from') ?? ''
+  const from =
+    readDate(fromAttribute) ??
+    readDate(options.from) ??
+    (utc ? Date.UTC(year.getUTCFullYear(), 0, 1) : new Date(year.getFullYear(), 0, 1).getTime())
+
+  const dateStyle = readEnum(element, 'data-counter-date-style', DATE_STYLES, 'long')
+  const formatter = new Intl.DateTimeFormat(locale, {
+    ...(utc && { timeZone: 'UTC' }),
+    ...(element.hasAttribute('data-counter-date-style') || !options.dateFormat
+      ? { dateStyle }
+      : options.dateFormat),
+  })
+  const custom = options.formatter
+
+  return {
+    from,
+    to,
+    format: custom ? value => custom(value, element) : value => formatter.format(value),
+    step: readNumber(element, 'data-counter-step', options.step ?? 1) * DAY,
+  }
+}
+
+const prepare = (element: HTMLElement, original: string, options: CounterOptions): Setup | null => {
+  const locale = safeLocale(
+    readString(element, 'data-counter-locale', '') ||
+      options.locale ||
+      element.closest('[lang]')?.getAttribute('lang') ||
+      undefined
+  )
+  const kind = readEnum(element, 'data-counter-as', KINDS, options.as ?? 'number')
+  const value =
+    kind === 'time'
+      ? timeValue(element, original, options, locale)
+      : kind === 'date'
+        ? dateValue(element, options, locale)
+        : numberValue(element, original, options, locale)
+  if (!value) return null
+
+  const easingAttribute = element.getAttribute('data-counter-easing')?.trim()
+
+  return {
+    ...value,
+    step: Math.max(0, value.step),
     duration: readNumber(element, 'data-counter-duration', options.duration ?? 2000),
     delay: readNumber(element, 'data-counter-delay', options.delay ?? 0),
     easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
-    format,
     // End on the original markup when it reads exactly like the final value.
-    restore: normalize(format(to)) === normalize(original),
+    restore: normalize(value.format(value.to)) === normalize(original),
   }
 }
+
+/** Show only whole steps away from the start; the end stays exact. */
+const snap = ({ from, to, step }: Setup, value: number) =>
+  step > 0 && value !== to ? from + Math.trunc((value - from) / step) * step : value
 
 /* ------------------------------------------------------------------------ */
 /* Controller                                                                */
@@ -329,8 +436,8 @@ export const counter = (
 
   const show = (element: HTMLElement, value: number) => {
     const entry = entries.get(element)!
-    entry.value = value
-    element.textContent = entry.setup.format(value)
+    entry.value = snap(entry.setup, value)
+    element.textContent = entry.setup.format(entry.value)
   }
 
   const stop = (element: HTMLElement) => {
@@ -371,7 +478,7 @@ export const counter = (
       easing: setup.easing,
       onUpdate: value => {
         show(element, value)
-        current.onUpdate?.(value, element)
+        current.onUpdate?.(entries.get(element)!.value, element)
         emit('update', element)
       },
       onComplete: () => {

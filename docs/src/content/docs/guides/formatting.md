@@ -79,38 +79,69 @@ Text outside the element works too, and keeps the counted element short:
 +<span data-counter="42">42</span>% <span data-counter="4.9">4.9</span> / 5
 ```
 
-## Clocks, durations and dates
+## Clocks and dates
 
-A counter animates one number. To show it as a clock or a date, count the smallest unit and let `formatter` carry it into the larger ones, so seconds roll into minutes and minutes into hours:
+Since 1.2.0, `data-counter-as` tells counter what the number means, and the HTML stays the source of truth.
+
+### Clocks: `data-counter-as="time"`
+
+The value is in seconds and the text gives the pattern: `23:59:59` is hours, minutes and seconds, `90:00` is minutes and seconds. Seconds carry into minutes and minutes into hours, and the clock moves one whole second at a time.
+
+```html
+<time data-counter data-counter-as="time">23:59:59</time>
+<!-- 00:00:00 … 00:59:59, 01:00:00 … 23:59:59 -->
+<time data-counter data-counter-as="time">90:00</time>
+<!-- 00:00 … 45:00 … 90:00: minutes go past 59 without an hours field -->
+<time data-counter data-counter-as="time" data-counter-from="08:00:00">17:30:00</time>
+<!-- a work day: the start can be a clock too -->
+<span data-counter="0" data-counter-as="time" data-counter-from="600">10:00</span>
+<!-- counts down: 10:00 … 00:00 -->
+```
+
+- A first field written with one digit (`1:05:00`) stays unpadded; the others always have two digits.
+- Text around the clock stays: `Run 1:05:00 total`.
+- `data-counter-step="60"` moves a minute at a time.
+- Without a clock in the text, `data-counter="5400"` gives the seconds; values of an hour or more show hours.
+
+### Dates: `data-counter-as="date"`
+
+Counts day by day up to the `datetime` (or an ISO date in `data-counter`), formatted with `Intl.DateTimeFormat` in the language of the element, so months, years and leap days roll over on their own. It starts on January 1 of that year unless `data-counter-from` says otherwise, and ends on the text you wrote.
+
+```html
+<time data-counter data-counter-as="date" datetime="2026-12-31">December 31, 2026</time>
+<!-- January 1, 2026 … January 31, 2026, February 1, 2026 … December 31, 2026 -->
+<time
+  data-counter
+  data-counter-as="date"
+  datetime="2027-01-01"
+  data-counter-from="2026-12-01"
+  data-counter-date-style="medium"
+  data-counter-step="7"
+>
+  Jan 1, 2027
+</time>
+<!-- week by week: Dec 1, 2026, Dec 8, 2026 … Dec 29, 2026, Jan 1, 2027 -->
+```
+
+- `data-counter-date-style` is `full`, `long` (default), `medium` or `short`. In JavaScript, `dateFormat` takes any `Intl.DateTimeFormat` options, for example `{ month: 'long', year: 'numeric' }` to count months.
+- A date without a time (`2026-12-31`) is a calendar day, the same in every time zone. A date with a time (`2026-12-31T18:00`) is local time.
+- `data-counter-step` is in days.
+- In JavaScript, `from` and `to` are timestamps: `counter(el, { as: 'date', from: Date.UTC(2026, 0, 1), to: Date.UTC(2026, 11, 31) })`.
+
+The [Clock and calendar example](../examples/#guide-clock) runs every case. These are simulations: they run for `duration`, not on the wall clock.
+
+### Your own units
+
+For anything else, count the smallest unit and let `formatter` carry it:
 
 ```js
-const pad = number => String(number).padStart(2, '0')
-
-counter('#clock', {
-  to: 86399, // seconds in a day, minus one
-  duration: 8000,
-  easing: 'linear',
-  formatter: value => {
-    const seconds = Math.floor(value)
-    return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
-  },
+counter('#flight', {
+  to: 750, // minutes
+  formatter: minutes => `${Math.floor(minutes / 60)} h ${Math.floor(minutes % 60)} min`,
 })
 ```
 
-For days that roll into months and years, count days and format a date; `Intl.DateTimeFormat` handles month lengths and leap years:
-
-```js
-const start = Date.UTC(2026, 0, 1)
-const day = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' })
-
-counter('#date', {
-  to: 365,
-  duration: 6000,
-  formatter: days => day.format(start + Math.floor(days) * 86_400_000),
-})
-```
-
-These are simulations: they run for `duration`, not on the wall clock.
+`formatter` also replaces the clock and the date text when `data-counter-as` is set.
 
 ## A steady layout
 
