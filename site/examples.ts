@@ -53,6 +53,50 @@ counter('.plain')`,
     },
   },
   {
+    id: 'formats',
+    tab: 'Formats',
+    title: 'Grouping, decimals and the text around the number',
+    description:
+      'By default a number counts the way the HTML writes it: 8000 stays 8000 and 8,000 stays 8,000. data-counter-grouping="true" adds the separators of the language, decimals fixes the decimals, and text around the number stays unless a currency, percent or unit style adds its own.',
+    files: {
+      html: `<div class="formats">
+  <dl lang="en">
+    <div><dt>As written: no separators</dt><dd><span data-counter>8000</span></dd></div>
+    <div><dt>As written: separators and decimals</dt><dd><span data-counter>8,000.45</span></dd></div>
+    <div><dt>grouping="true"</dt><dd><span data-counter data-counter-grouping="true">8000</span></dd></div>
+    <div><dt>grouping="true" keeps the $</dt><dd><span data-counter data-counter-grouping="true">$8000</span></dd></div>
+    <div><dt>grouping="true" decimals="2"</dt><dd><span data-counter data-counter-grouping="true" data-counter-decimals="2">8000</span></dd></div>
+    <div><dt>grouping="false"</dt><dd><span data-counter data-counter-grouping="false">8,000</span></dd></div>
+    <div><dt>grouping="true" lang="de"</dt><dd><span data-counter data-counter-grouping="true" lang="de">8000,5</span></dd></div>
+    <div><dt>format: compact, suffix kept</dt><dd><span id="compact">8000 visits</span></dd></div>
+    <div><dt>format: currency + grouping: true</dt><dd><span id="usd">8000</span></dd></div>
+  </dl>
+  <button type="button" id="again">Count again</button>
+</div>`,
+      css: `.formats { display: grid; gap: 1rem; justify-items: start; }
+.formats dl { display: grid; gap: 0.5rem; margin: 0; }
+.formats dl div { display: grid; grid-template-columns: minmax(12rem, 1fr) auto; gap: 1rem; align-items: baseline; }
+.formats dt { font: 0.875rem/1.4 ui-monospace, monospace; }
+.formats dd { margin: 0; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }`,
+      js: `// Every [data-counter] counts on its own; these two take JavaScript options.
+Counter.counter('#compact', { format: { notation: 'compact' } })
+Counter.counter('#usd', { grouping: true, format: { style: 'currency', currency: 'USD' } })
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.formats dd span').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, counter, getCounter } from '@samline/counter'
+
+autoCounter()
+counter('#compact', { format: { notation: 'compact' } })
+counter('#usd', { grouping: true, format: { style: 'currency', currency: 'USD' } })
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.formats dd span').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'repeat',
     tab: 'Repeat',
     title: 'Count down, and again on every visit',
@@ -71,6 +115,72 @@ counter('.plain')`,
       esm: `import { autoCounter, counter } from '@samline/counter'
 
 autoCounter({ root: document.querySelector('#page') })`,
+    },
+  },
+  {
+    id: 'controls',
+    tab: 'Controls',
+    title: 'Start, pause and finish a simulated clock',
+    description:
+      'start: manual waits for start(). The controller pauses, resumes, resets and finishes, and its events report the state. The clock counts seconds; the formatter carries them into minutes and hours.',
+    files: {
+      html: `<div class="clock">
+  <time id="clock" class="big">23:59:59</time>
+  <p id="status" aria-live="polite">Ready</p>
+  <div class="actions">
+    <button type="button" data-action="start">Start</button>
+    <button type="button" data-action="pause">Pause</button>
+    <button type="button" data-action="resume">Resume</button>
+    <button type="button" data-action="finish">Finish</button>
+    <button type="button" data-action="reset">Reset</button>
+  </div>
+</div>`,
+      css: `.clock { display: grid; gap: 0.75rem; justify-items: start; }
+.big { font-size: 2.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+#status { margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }`,
+      js: `// One day in eight seconds: count seconds, show hours, minutes and seconds.
+const pad = number => String(number).padStart(2, '0')
+const clock = Counter.counter('#clock', {
+  to: 86399,
+  duration: 8000,
+  easing: 'linear',
+  start: 'manual',
+  formatter: value => {
+    const seconds = Math.floor(value)
+    return \`\${pad(Math.floor(seconds / 3600))}:\${pad(Math.floor(seconds / 60) % 60)}:\${pad(seconds % 60)}\`
+  },
+})
+
+const status = document.querySelector('#status')
+const labels = { start: 'Counting', pause: 'Paused', resume: 'Counting', complete: 'Done', reset: 'Ready' }
+Object.entries(labels).forEach(([event, label]) => clock.on(event, () => (status.textContent = label)))
+
+document.querySelectorAll('[data-action]').forEach(button =>
+  button.addEventListener('click', () => clock[button.dataset.action]())
+)`,
+      esm: `import { counter } from '@samline/counter'
+
+// One day in eight seconds: count seconds, show hours, minutes and seconds.
+const pad = number => String(number).padStart(2, '0')
+const clock = counter('#clock', {
+  to: 86399,
+  duration: 8000,
+  easing: 'linear',
+  start: 'manual',
+  formatter: value => {
+    const seconds = Math.floor(value)
+    return \`\${pad(Math.floor(seconds / 3600))}:\${pad(Math.floor(seconds / 60) % 60)}:\${pad(seconds % 60)}\`
+  },
+})
+
+const status = document.querySelector('#status')
+const labels = { start: 'Counting', pause: 'Paused', resume: 'Counting', complete: 'Done', reset: 'Ready' }
+Object.entries(labels).forEach(([event, label]) => clock.on(event, () => (status.textContent = label)))
+
+document.querySelectorAll('[data-action]').forEach(button =>
+  button.addEventListener('click', () => clock[button.dataset.action]())
+)`,
     },
   },
 ]

@@ -5,6 +5,7 @@ import {
   onReducedMotionChange,
   prefersReducedMotion,
   readBoolean,
+  readEnum,
   readNumber,
   readString,
   resolveElements,
@@ -19,20 +20,39 @@ import {
   resolveEasing,
   fractionDigits,
   parseNumber,
+  readShape,
   safeLocale,
+  STARTS,
+  type CounterStart,
   type CounterState,
+  type CounterEvent,
+  type CounterListener,
+  type CounterSnapshot,
+  type CounterController,
   type CounterOptions,
   type AutoCounterOptions,
   ATTRIBUTE,
+  EVENT_PREFIX,
   STATE_ATTRIBUTE,
 } from '../core/counter.js'
 
+/* ------------------------------------------------------------------------ */
+/* Tween                                                                     */
+/* ------------------------------------------------------------------------ */
+
+interface Tween {
+  pause: () => void
+  resume: () => void
+  cancel: () => void
+}
+
+const stillTween: Tween = { pause: noop, resume: noop, cancel: noop }
+
 /**
- * Animate a number from `from` to `to` over time, frame by frame. Returns a
- * function that cancels it. Without `requestAnimationFrame` (on the server),
- * or with a duration of `0`, it jumps to `to` at once.
+ * The eased, time-based tween behind `animateNumber`, with pause and resume.
+ * Time spent paused does not count.
  */
-export const animateNumber = ({
+const createTween = ({
   from = 0,
   to,
   duration = 2000,
@@ -40,7 +60,7 @@ export const animateNumber = ({
   easing,
   onUpdate,
   onComplete,
-}: AnimateNumberOptions): (() => void) => {
+}: AnimateNumberOptions): Tween => {
   const ease = resolveEasing(easing)
   const finish = () => {
     onUpdate(to)
@@ -49,22 +69,65 @@ export const animateNumber = ({
 
   if (duration <= 0 || typeof requestAnimationFrame !== 'function') {
     finish()
-    return noop
+    return stillTween
   }
 
   let frame = 0
-  let start: number | null = null
+  // Negative while waiting for the delay.
+  let elapsed = -Math.max(0, delay)
+  let last: number | null = null
+  let running = true
+  let over = false
+
   const step = (now: number) => {
-    start ??= now + Math.max(0, delay)
-    const progress = Math.min(Math.max((now - start) / duration, 0), 1)
-    if (progress >= 1) return finish()
+    if (last !== null) elapsed += now - last
+    last = now
+    const progress = Math.min(Math.max(elapsed / duration, 0), 1)
+    if (progress >= 1) {
+      over = true
+      return finish()
+    }
     onUpdate(from + (to - from) * ease(progress))
     frame = requestAnimationFrame(step)
   }
   frame = requestAnimationFrame(step)
 
-  return () => cancelAnimationFrame(frame)
+  const halt = () => {
+    cancelAnimationFrame(frame)
+    running = false
+    last = null
+  }
+
+  return {
+    pause: halt,
+    resume: () => {
+      if (running || over) return
+      running = true
+      frame = requestAnimationFrame(step)
+    },
+    cancel: () => {
+      halt()
+      over = true
+    },
+  }
 }
+
+/**
+ * Animate a number from `from` to `to` over time, frame by frame. Returns a
+ * function that cancels it. Without `requestAnimationFrame` (on the server),
+ * or with a duration of `0`, it jumps to `to` at once.
+ */
+export const animateNumber = (options: AnimateNumberOptions): (() => void) =>
+  createTween(options).cancel
+
+/* ------------------------------------------------------------------------ */
+/* Setup                                                                     */
+/* ------------------------------------------------------------------------ */
+
+const GROUPINGS = ['auto', 'true', 'false'] as const
+
+/** Compare texts regardless of the kind of spaces (French groups with a narrow no-break space). */
+const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 interface Setup {
   from: number
@@ -73,30 +136,29 @@ interface Setup {
   delay: number
   easing: Easing
   repeat: boolean
+  start: CounterStart
   format: (value: number) => string
-  /** The element's own child nodes, restored on cleanup so inner markup survives. */
-  original: Node[]
+  /** The final value is the rendered text: put the original nodes back when done. */
+  restore: boolean
 }
 
-const prepare = (element: HTMLElement, options: CounterOptions): Setup | null => {
+const prepare = (element: HTMLElement, original: string, options: CounterOptions): Setup | null => {
   const locale = safeLocale(
     readString(element, 'data-counter-locale', '') ||
       options.locale ||
       element.closest('[lang]')?.getAttribute('lang') ||
       undefined
   )
-  const original = element.textContent ?? ''
-  const nodes = Array.from(element.childNodes)
 
   // Final value: the attribute, then the option, then the visible text.
   const raw = element.getAttribute(ATTRIBUTE)?.trim() ?? ''
   const fromAttribute = raw && Number.isFinite(Number(raw)) ? Number(raw) : null
-  const parsed =
-    fromAttribute === null && options.to === undefined ? parseNumber(original, locale) : null
-  const to = fromAttribute ?? options.to ?? parsed?.value
+  const parsed = parseNumber(original, locale)
+  const fromText = fromAttribute === null && options.to === undefined ? parsed : null
+  const to = fromAttribute ?? options.to ?? fromText?.value
   if (to === undefined) return null
 
-  let inferred = fromAttribute !== null ? fractionDigits(raw) : (parsed?.decimals ?? 0)
+  let inferred = fromAttribute !== null ? fractionDigits(raw) : (fromText?.decimals ?? 0)
   // Percent formatting multiplies by 100: 0.25 is "25%", with no decimals.
   if (options.format?.style === 'percent' && fromAttribute !== null)
     inferred = Math.max(0, inferred - 2)
@@ -108,6 +170,23 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
     20
   )
 
+  // The rendered text is the template: its prefix and suffix stay unless a
+  // `format` style adds its own symbols, and grouping follows it on 'auto'.
+  const shape = options.formatter ? null : readShape(original, locale)
+  const style = options.format?.style
+  const affixes = shape && (!style || style === 'decimal') ? shape : null
+  const grouping = readEnum(
+    element,
+    'data-counter-grouping',
+    GROUPINGS,
+    `${options.grouping ?? 'auto'}`
+  )
+  const useGrouping =
+    grouping === 'false' ||
+    (grouping === 'auto' && shape && shape.integerDigits >= 4 && !shape.grouped)
+      ? { useGrouping: false }
+      : null
+
   let format: (value: number) => string
   if (options.formatter) {
     const custom = options.formatter
@@ -116,14 +195,17 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
     const formatter = new Intl.NumberFormat(locale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
+      ...useGrouping,
       ...options.format,
     })
     // Values rounding to zero on the way up from a negative start would read "-0".
     const negativeZero = formatter.format(-0)
     const zero = formatter.format(0)
+    const prefix = affixes?.prefix ?? ''
+    const suffix = affixes?.suffix ?? ''
     format = value => {
       const text = formatter.format(value)
-      return text === negativeZero ? zero : text
+      return prefix + (text === negativeZero ? zero : text) + suffix
     }
   }
 
@@ -136,10 +218,52 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
     delay: readNumber(element, 'data-counter-delay', options.delay ?? 0),
     easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
+    start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
     format,
-    original: nodes,
+    // End on the original markup when it reads exactly like the final value.
+    restore: normalize(format(to)) === normalize(original),
   }
 }
+
+/* ------------------------------------------------------------------------ */
+/* Controller                                                                */
+/* ------------------------------------------------------------------------ */
+
+interface Entry {
+  setup: Setup
+  /** The element's own child nodes, restored on cleanup so inner markup survives. */
+  nodes: Node[]
+  text: string
+  tween: Tween | null
+  value: number
+  state: CounterState
+  /** Stops watching visibility. */
+  unwatch: () => void
+}
+
+/** Which live controller owns an element. */
+const owners = new WeakMap<HTMLElement, CounterController>()
+
+const inert = (): CounterController => {
+  const controller: CounterController = Object.assign(() => {}, {
+    elements: [] as readonly HTMLElement[],
+    start: () => controller,
+    pause: () => controller,
+    resume: () => controller,
+    reset: () => controller,
+    finish: () => controller,
+    update: () => controller,
+    refresh: () => controller,
+    getSnapshot: () => [],
+    on: () => noop,
+    destroy: noop,
+  })
+  return controller
+}
+
+/** The controller counting `element`, or `null`. */
+export const getCounter = (element: Element | null | undefined): CounterController | null =>
+  (element instanceof HTMLElement && owners.get(element)) || null
 
 /**
  * Count numbers as they scroll into view.
@@ -149,125 +273,270 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
  * script runs, each element shows `from` and counts to the final value once
  * half of it is visible. With reduced motion it keeps the final value.
  *
- * Returns a cleanup that stops everything and restores the original content.
+ * Returns a controller. Call it, or its `destroy()`, to stop everything and
+ * restore the original content. Elements another controller already counts
+ * are left to it; when every element belongs to one controller, that
+ * controller is returned.
  */
 export const counter = (
   target: ElementTarget = `[${ATTRIBUTE}]`,
   options: CounterOptions = {}
-): (() => void) => {
-  if (!isBrowser()) return noop
+): CounterController => {
+  if (!isBrowser()) return inert()
 
-  const setups = new Map<HTMLElement, Setup>()
-  for (const element of resolveElements(target)) {
-    if (!(element instanceof HTMLElement)) continue
-    const setup = prepare(element, options)
-    if (setup) setups.set(element, setup)
+  const found = Array.from(resolveElements(target)).filter(
+    (element): element is HTMLElement => element instanceof HTMLElement
+  )
+  const fresh = found.filter(element => !owners.has(element))
+  if (fresh.length === 0) {
+    const existing = new Set(found.map(element => owners.get(element)))
+    return existing.size === 1 ? [...existing][0]! : inert()
   }
-  if (setups.size === 0) return noop
 
-  const cancels = new Map<HTMLElement, () => void>()
-  const cleanups: Array<() => void> = []
-  const reduced = prefersReducedMotion()
+  let current = options
+  const entries = new Map<HTMLElement, Entry>()
+  for (const element of fresh) {
+    const text = element.textContent ?? ''
+    const setup = prepare(element, text, current)
+    if (setup)
+      entries.set(element, {
+        setup,
+        nodes: Array.from(element.childNodes),
+        text,
+        tween: null,
+        value: setup.to,
+        state: 'done',
+        unwatch: noop,
+      })
+  }
+  if (entries.size === 0) return inert()
 
-  const setState = (element: HTMLElement, state: CounterState) =>
+  const listeners = new Map<CounterEvent, Set<CounterListener>>()
+  let active = true
+
+  const emit = (event: CounterEvent, element: HTMLElement) => {
+    const entry = entries.get(element)!
+    const detail = { element, value: entry.value, state: entry.state }
+    listeners.get(event)?.forEach(listener => listener(detail))
+    if (event !== 'update')
+      element.dispatchEvent(new CustomEvent(EVENT_PREFIX + event, { bubbles: true, detail }))
+  }
+
+  const setState = (element: HTMLElement, state: CounterState) => {
+    entries.get(element)!.state = state
     element.setAttribute(STATE_ATTRIBUTE, state)
-
-  const stop = (element: HTMLElement) => {
-    cancels.get(element)?.()
-    cancels.delete(element)
   }
 
   const show = (element: HTMLElement, value: number) => {
-    element.textContent = setups.get(element)!.format(value)
+    const entry = entries.get(element)!
+    entry.value = value
+    element.textContent = entry.setup.format(value)
+  }
+
+  const stop = (element: HTMLElement) => {
+    const entry = entries.get(element)!
+    entry.tween?.cancel()
+    entry.tween = null
+  }
+
+  const showFinal = (element: HTMLElement) => {
+    const entry = entries.get(element)!
+    if (entry.setup.restore) {
+      entry.value = entry.setup.to
+      element.replaceChildren(...entry.nodes)
+    } else show(element, entry.setup.to)
   }
 
   const complete = (element: HTMLElement) => {
     stop(element)
-    show(element, setups.get(element)!.to)
+    showFinal(element)
     setState(element, 'done')
-    options.onComplete?.(element)
+    current.onComplete?.(element)
+    emit('complete', element)
   }
 
-  const start = (element: HTMLElement) => {
-    const setup = setups.get(element)!
+  const begin = (element: HTMLElement) => {
+    const { setup } = entries.get(element)!
     stop(element)
     if (prefersReducedMotion()) return complete(element)
+    show(element, setup.from)
     setState(element, 'counting')
-    options.onStart?.(element)
-    cancels.set(
-      element,
-      animateNumber({
-        from: setup.from,
-        to: setup.to,
-        duration: setup.duration,
-        delay: setup.delay,
-        easing: setup.easing,
-        onUpdate: value => {
-          show(element, value)
-          options.onUpdate?.(value, element)
-        },
-        onComplete: () => {
-          cancels.delete(element)
-          complete(element)
-        },
-      })
-    )
+    current.onStart?.(element)
+    emit('start', element)
+    entries.get(element)!.tween = createTween({
+      from: setup.from,
+      to: setup.to,
+      duration: setup.duration,
+      delay: setup.delay,
+      easing: setup.easing,
+      onUpdate: value => {
+        show(element, value)
+        current.onUpdate?.(value, element)
+        emit('update', element)
+      },
+      onComplete: () => {
+        entries.get(element)!.tween = null
+        complete(element)
+      },
+    })
   }
 
-  const reset = (element: HTMLElement) => {
+  /** Show the start value and wait. */
+  const rewind = (element: HTMLElement) => {
     stop(element)
-    show(element, setups.get(element)!.from)
+    show(element, entries.get(element)!.setup.from)
     setState(element, 'pending')
   }
 
-  const groups = new Map<boolean, HTMLElement[]>()
-  setups.forEach((setup, element) => {
-    if (reduced) {
-      // Keep the text as rendered; nothing moves.
-      setState(element, 'done')
-      options.onComplete?.(element)
-      return
-    }
-    reset(element)
-    groups.set(setup.repeat, [...(groups.get(setup.repeat) ?? []), element])
-  })
-
-  groups.forEach((group, repeat) => {
-    cleanups.push(
-      observeVisibility(group, {
-        root: options.root ?? null,
-        rootMargin: options.rootMargin ?? '0px',
-        threshold: options.threshold ?? 0.5,
-        once: !repeat,
-        inOut: repeat,
-        visible: (_, element) => start(element as HTMLElement),
-        notVisible: (_, element) => {
-          if (!prefersReducedMotion()) reset(element as HTMLElement)
-        },
-      })
-    )
-  })
-
-  cleanups.push(
-    onReducedMotionChange(isReduced => {
-      if (!isReduced) return
-      setups.forEach((_, element) => {
-        if (element.getAttribute(STATE_ATTRIBUTE) !== 'done') complete(element)
-      })
-    })
-  )
-
-  let active = true
-  return () => {
-    if (!active) return
-    active = false
-    cleanups.forEach(cleanup => cleanup())
-    setups.forEach((setup, element) => {
-      stop(element)
-      element.replaceChildren(...setup.original)
-      element.removeAttribute(STATE_ATTRIBUTE)
+  /** Watch visibility for elements that start on it and can still start. */
+  const watch = (element: HTMLElement) => {
+    const entry = entries.get(element)!
+    entry.unwatch()
+    entry.unwatch = noop
+    const { setup } = entry
+    if (setup.start !== 'visible' || (!setup.repeat && entry.state !== 'pending')) return
+    entry.unwatch = observeVisibility(element, {
+      root: current.root ?? null,
+      rootMargin: current.rootMargin ?? '0px',
+      threshold: current.threshold ?? 0.5,
+      once: !setup.repeat,
+      inOut: setup.repeat,
+      visible: () => begin(element),
+      notVisible: () => {
+        if (prefersReducedMotion()) return
+        rewind(element)
+        emit('reset', element)
+      },
     })
   }
+
+  /** Put an element in its first state, as on creation. */
+  const arm = (element: HTMLElement) => {
+    if (prefersReducedMotion()) {
+      // Keep the text as rendered; nothing moves.
+      stop(element)
+      element.replaceChildren(...entries.get(element)!.nodes)
+      entries.get(element)!.value = entries.get(element)!.setup.to
+      setState(element, 'done')
+      current.onComplete?.(element)
+      emit('complete', element)
+      return
+    }
+    rewind(element)
+    if (entries.get(element)!.setup.start === 'load') begin(element)
+    watch(element)
+  }
+
+  const targets = (element?: Element): HTMLElement[] =>
+    !active
+      ? []
+      : element === undefined
+        ? [...entries.keys()]
+        : entries.has(element as HTMLElement)
+          ? [element as HTMLElement]
+          : []
+
+  const command =
+    (action: (element: HTMLElement, entry: Entry) => void) =>
+    (element?: Element): CounterController => {
+      targets(element).forEach(target => action(target, entries.get(target)!))
+      return controller
+    }
+
+  const reprepare = () => {
+    entries.forEach((entry, element) => {
+      const setup = prepare(element, entry.text, current)
+      // The text was readable once; keep the old setup if the attribute became invalid.
+      if (setup) entry.setup = setup
+      const { state } = entry
+      if (state === 'counting' || state === 'paused') begin(element)
+      else if (state === 'done') showFinal(element)
+      else show(element, entry.setup.from)
+      watch(element)
+    })
+  }
+
+  const destroy = () => {
+    if (!active) return
+    active = false
+    stopMotion()
+    entries.forEach((entry, element) => {
+      entry.unwatch()
+      stop(element)
+      element.replaceChildren(...entry.nodes)
+      element.removeAttribute(STATE_ATTRIBUTE)
+      owners.delete(element)
+    })
+    listeners.clear()
+  }
+
+  const controller: CounterController = Object.assign(() => destroy(), {
+    elements: [...entries.keys()] as readonly HTMLElement[],
+    start: command(element => begin(element)),
+    pause: command((element, entry) => {
+      if (entry.state !== 'counting') return
+      entry.tween?.pause()
+      setState(element, 'paused')
+      emit('pause', element)
+    }),
+    resume: command((element, entry) => {
+      if (entry.state !== 'paused') return
+      setState(element, 'counting')
+      emit('resume', element)
+      entry.tween?.resume()
+    }),
+    reset: command(element => {
+      rewind(element)
+      emit('reset', element)
+    }),
+    finish: command((element, entry) => {
+      if (entry.state !== 'done') complete(element)
+    }),
+    update: (next: CounterOptions) => {
+      if (active) {
+        current = { ...current, ...next }
+        reprepare()
+      }
+      return controller
+    },
+    refresh: () => {
+      if (active) reprepare()
+      return controller
+    },
+    getSnapshot: (): CounterSnapshot[] =>
+      targets().map(element => {
+        const { setup, value, state } = entries.get(element)!
+        const span = setup.to - setup.from
+        return {
+          element,
+          value,
+          state,
+          from: setup.from,
+          to: setup.to,
+          progress: span === 0 ? (state === 'done' ? 1 : 0) : (value - setup.from) / span,
+        }
+      }),
+    on: (event: CounterEvent, listener: CounterListener) => {
+      if (!active) return noop
+      const set = listeners.get(event) ?? new Set()
+      listeners.set(event, set.add(listener))
+      return () => void set.delete(listener)
+    },
+    destroy,
+  })
+
+  entries.forEach((_, element) => owners.set(element, controller))
+
+  const stopMotion = onReducedMotionChange(isReduced => {
+    if (!isReduced) return
+    entries.forEach((entry, element) => {
+      if (entry.state !== 'done') complete(element)
+    })
+  })
+
+  entries.forEach((_, element) => arm(element))
+
+  return controller
 }
 
 /**

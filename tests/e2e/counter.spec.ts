@@ -73,3 +73,51 @@ test('without the script or with reduced motion, the rendered value stays', asyn
   await expect(page.locator('#de')).toHaveText('12.345,5')
   await expect(page.locator('#text')).toHaveText('1.200')
 })
+
+test('the rendered text is kept: ungrouped digits, prefix and suffix', async ({ load, page }) => {
+  await load(
+    `<p lang="en">
+      <span id="plain" data-counter data-counter-duration="300">8000</span>
+      <span id="money" data-counter data-counter-duration="300">$8,000.45</span>
+    </p>`,
+    'counter'
+  )
+  await expect(page.locator('#plain')).toHaveAttribute('data-counter-state', 'done')
+  await expect(page.locator('#plain')).toHaveText('8000')
+  await expect(page.locator('#money')).toHaveText('$8,000.45')
+})
+
+test('the controller starts, pauses, resumes and emits DOM events', async ({ load, page }) => {
+  await load(
+    `<span id="manual" data-counter="500" data-counter-start="manual" data-counter-duration="800">500</span>`,
+    'counter'
+  )
+  const manual = page.locator('#manual')
+  await expect(manual).toHaveAttribute('data-counter-state', 'pending')
+  await expect(manual).toHaveText('0')
+
+  await page.evaluate(() => {
+    const events: string[] = []
+    Object.assign(window, { events })
+    for (const name of ['start', 'pause', 'resume', 'complete'])
+      document.addEventListener(`counter:${name}`, () => events.push(name))
+    const c = (window as any).Counter.getCounter(document.getElementById('manual'))
+    Object.assign(window, { c })
+    c.start()
+  })
+  await expect(manual).toHaveAttribute('data-counter-state', 'counting')
+  await page.evaluate(() => (window as any).c.pause())
+  await expect(manual).toHaveAttribute('data-counter-state', 'paused')
+  const paused = await manual.textContent()
+  await page.waitForTimeout(300)
+  await expect(manual).toHaveText(paused!)
+  await page.evaluate(() => (window as any).c.resume())
+  await expect(manual).toHaveAttribute('data-counter-state', 'done')
+  await expect(manual).toHaveText('500')
+  expect(await page.evaluate(() => (window as any).events)).toEqual([
+    'start',
+    'pause',
+    'resume',
+    'complete',
+  ])
+})

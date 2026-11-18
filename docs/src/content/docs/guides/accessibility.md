@@ -11,7 +11,7 @@ sidebar:
 
 ## Responsibilities
 
-Counter animates text that is already correct. It guarantees that the rendered HTML holds the final value, that every count ends exactly on it, and that `destroy` (the returned cleanup) restores the original text. It does not add ARIA attributes or live regions. Your page provides the label that gives the number its meaning (`12,480 customers`, not a bare `12,480`).
+Counter animates text that is already correct. It guarantees that the rendered HTML holds the final value, that every count ends exactly on it, and that `destroy()` (also calling the returned controller) restores the original markup. It does not add ARIA attributes or live regions. Your page provides the label that gives the number its meaning (`12,480 customers`, not a bare `12,480`).
 
 ## Motion and state
 

@@ -23,6 +23,8 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-decimals` | number                              | Decimals to show                                                                          |
 | `data-counter-locale`   | BCP 47 tag                          | Language for formatting and for reading the text                                          |
 | `data-counter-repeat`   | present, or `false`                 | Reset on leaving, count again on every entry                                              |
+| `data-counter-start`    | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
+| `data-counter-grouping` | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
 
 ## Options
 
@@ -38,6 +40,8 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `format`                       | —                                      | `Intl.NumberFormat` options, for example `{ style: 'currency', currency: 'EUR' }`  |
 | `formatter(value, element)`    | —                                      | Returns the text yourself; replaces `locale`, `decimals` and `format`              |
 | `repeat`                       | `false`                                | Count again every time the number enters                                           |
+| `start`                        | `'visible'`                            | `'visible'`, `'load'` (right away) or `'manual'` (when you call `start()`)         |
+| `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups |
 | `root`                         | viewport                               | Scroll container to observe against                                                |
 | `rootMargin`                   | `'0px'`                                | Grows or shrinks the root                                                          |
 | `threshold`                    | `0.5`                                  | Share of the number that must be visible to start                                  |
@@ -54,17 +58,40 @@ The final value comes from the first of these that holds a number:
 2. the `to` option;
 3. the element's text, read in its language: `1.234,5` in German, `$1,234.50` in English.
 
+## The rendered text is the template
+
+A number counts the way the HTML writes it (since 1.1.0):
+
+- **Grouping** follows the text with `grouping: 'auto'` (the default): `8000` counts to `8000` and `8,000` to `8,000`. `true` adds the separators of the language (`8000` → `8,000` in English, `8.000` in German); `false` removes them. With fewer than four digits in the text there is nothing to copy, so `'auto'` groups as the language does. `format.useGrouping` wins over `grouping`.
+- **Text around the number** stays: `$8,000` counts as `$0`, `$1,250` … `$8,000`, and `8.000,45 €` keeps its ` €`. It also stays with `format`, unless `format.style` is `currency`, `percent` or `unit`, which add their own symbols. `formatter` replaces the whole text.
+- **Markup** comes back at the end when the final value reads exactly like the original text, so `100<sup>+</sup>` ends as written. When it reads differently (for example `8000` with `grouping: true`), the count ends on the formatted value.
+
+| HTML                                 | Options                                                            | Ends as     |
+| ------------------------------------ | ------------------------------------------------------------------ | ----------- |
+| `8000`                               | —                                                                  | `8000`      |
+| `8,000.45`                           | —                                                                  | `8,000.45`  |
+| `8000`                               | `grouping: true`                                                   | `8,000`     |
+| `$8000`                              | `grouping: true`                                                   | `$8,000`    |
+| `8000` + `data-counter-decimals="2"` | `grouping: true`                                                   | `8,000.00`  |
+| `8,000`                              | `grouping: false`                                                  | `8000`      |
+| `8000,5` in `lang="de"`              | `grouping: true`                                                   | `8.000,5`   |
+| `8000 visits`                        | `format: { notation: 'compact' }`                                  | `8K visits` |
+| `8000`                               | `grouping: true`, `format: { style: 'currency', currency: 'USD' }` | `$8,000`    |
+
+The [Formats example](../../guides/examples/#guide-formats) runs every row.
+
 Decimals come from how the target is written: `data-counter="12.50"` shows two decimals all the way. With `format: { style: 'percent' }`, write fractions (`0.25` for 25%); two decimals are taken off for the percentage.
 
 ## States
 
 The script sets `data-counter-state` on each number:
 
-| State      | Meaning                                        |
-| ---------- | ---------------------------------------------- |
-| `pending`  | Showing the start value, waiting to be visible |
-| `counting` | Counting                                       |
-| `done`     | Showing the final value                        |
+| State      | Meaning                                      |
+| ---------- | -------------------------------------------- |
+| `pending`  | Showing the start value, waiting to start    |
+| `counting` | Counting                                     |
+| `paused`   | Stopped by `pause()`, waiting for `resume()` |
+| `done`     | Showing the final value                      |
 
 Use them in CSS, for example to highlight a number while it counts:
 

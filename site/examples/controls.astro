@@ -1,0 +1,82 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="clock" data-preview="controls" lang="en">
+    <time class="big" data-clock>23:59:59</time>
+    <p class="status" data-status aria-live="polite">Ready</p>
+    <div class="actions">
+      <button type="button" data-action="start">Start</button>
+      <button type="button" data-action="pause">Pause</button>
+      <button type="button" data-action="resume">Resume</button>
+      <button type="button" data-action="finish">Finish</button>
+      <button type="button" data-action="reset">Reset</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .clock {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+  .status {
+    margin: 0;
+    color: var(--color-text-subtle);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .actions button {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .actions button:hover {
+    border-color: var(--color-text-subtle);
+  }
+</style>
+
+<script>
+  import { counter, type CounterEvent } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  const pad = (number: number) => String(number).padStart(2, '0')
+  const labels: Partial<Record<CounterEvent, string>> = {
+    start: 'Counting',
+    pause: 'Paused',
+    resume: 'Counting',
+    complete: 'Done',
+    reset: 'Ready',
+  }
+  type Action = 'start' | 'pause' | 'resume' | 'finish' | 'reset'
+
+  preview('controls', root => {
+    const clock = counter(root.querySelector('[data-clock]'), {
+      to: 86399,
+      duration: 8000,
+      easing: 'linear',
+      start: 'manual',
+      formatter: value => {
+        const seconds = Math.floor(value)
+        return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
+      },
+    })
+    const status = root.querySelector<HTMLElement>('[data-status]')!
+    Object.entries(labels).forEach(([event, label]) =>
+      clock.on(event as CounterEvent, () => (status.textContent = label))
+    )
+    root.querySelectorAll<HTMLButtonElement>('[data-action]').forEach(button =>
+      button.addEventListener('click', () => clock[button.dataset.action as Action]())
+    )
+    return clock
+  })
+</script>

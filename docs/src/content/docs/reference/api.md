@@ -11,20 +11,72 @@ sidebar:
 ## counter(target?, options?)
 
 ```ts
-counter(target?: ElementTarget, options?: CounterOptions): () => void
+counter(target?: ElementTarget, options?: CounterOptions): CounterController
 ```
 
-Counts `target` when it scrolls into view and returns a cleanup. `target` is a selector, an element, a NodeList or an array, and defaults to `'[data-counter]'`. Elements without a final value (no number in `data-counter`, no `to` option and no number in the text) are left alone.
+Counts `target` when it scrolls into view and returns a controller. `target` is a selector, an element, a NodeList or an array, and defaults to `'[data-counter]'`. Elements without a final value (no number in `data-counter`, no `to` option and no number in the text) are left alone.
 
 ```js
 import { counter } from '@samline/counter'
 
-const stop = counter('.stat', { duration: 1500, easing: 'ease-in-out' })
-// Later: stop counting and put the original text back.
-stop()
+const stats = counter('.stat', { duration: 1500, easing: 'ease-in-out' })
+// Later: stop counting and put the original markup back.
+stats.destroy() // or stats()
 ```
 
-The cleanup cancels any running count, restores each element's original text and removes `data-counter-state`. Calling it twice is safe. On the server, or with no matching elements, `counter` returns a no-op.
+The controller is also a function: calling it is the same as `destroy()`, so code written for 1.0 (`const stop = counter(); stop()`) keeps working. `destroy()` cancels any running count, restores each element's original markup and removes `data-counter-state`. Calling it twice is safe. On the server, or with no matching elements, `counter` returns a controller whose methods do nothing.
+
+An element is counted by one controller at a time. Calling `counter` again for elements another controller already counts leaves them to it; when every element belongs to one controller, that controller is returned.
+
+## The controller
+
+Since 1.1.0. Commands act on every element of the controller, or only on `element` when you pass one, and return the controller so they can be chained. After `destroy()` they do nothing.
+
+| Member                | Description                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `elements`            | The elements this controller counts                                                                            |
+| `start(element?)`     | Count from the start value now, even if the element is not visible yet                                         |
+| `pause(element?)`     | Pause a running count; paused time does not count                                                              |
+| `resume(element?)`    | Continue a paused count                                                                                        |
+| `reset(element?)`     | Stop and show the start value; call `start()` to count again                                                   |
+| `finish(element?)`    | Jump to the final value                                                                                        |
+| `update(options)`     | Merge options (attributes still win). Waiting elements show the new start, running ones count again            |
+| `refresh()`           | Read the `data-counter-*` attributes again                                                                     |
+| `getSnapshot()`       | One `{ element, value, state, from, to, progress }` per element; `progress` goes from `0` to `1`               |
+| `on(event, listener)` | Listen to `start`, `update`, `pause`, `resume`, `reset` or `complete`; returns a function that stops listening |
+| `destroy()`           | Stop and restore the original markup                                                                           |
+
+```js
+const total = counter('#total', { start: 'manual', duration: 1200 })
+
+total.on('complete', ({ element, value }) => console.log(element.id, value))
+document.querySelector('#play').addEventListener('click', () => total.start())
+document.querySelector('#hold').addEventListener('click', () => total.pause())
+```
+
+Listeners receive `{ element, value, state }`, where `value` is the number on screen. `update` runs on every frame.
+
+### DOM events
+
+Every event except `update` is also dispatched on the element as a bubbling `CustomEvent` named `counter:start`, `counter:pause`, `counter:resume`, `counter:reset` or `counter:complete`, with the same `detail`. They work without a reference to the controller, for example on pages that use the browser bundle:
+
+```js
+document.addEventListener('counter:complete', event => {
+  event.target.classList.add('is-done')
+})
+```
+
+## getCounter(element)
+
+```ts
+getCounter(element: Element | null | undefined): CounterController | null
+```
+
+Returns the controller counting `element`, or `null`. Use it to control numbers that `autoCounter` or the browser bundle started:
+
+```js
+getCounter(document.querySelector('#hero-number'))?.start()
+```
 
 ## autoCounter(options?)
 
@@ -75,7 +127,7 @@ import { EASINGS } from '@samline/counter'
 // { linear, 'ease-out', 'ease-in-out' }: functions from progress to eased progress
 ```
 
-`Easing`, `EasingName`, `CounterState`, `CounterOptions`, `AutoCounterOptions` and `AnimateNumberOptions` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
+`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. `@samline/counter/vanilla` exports `counter` as its default export.
 
 ## window.Counter
 
@@ -86,6 +138,7 @@ The browser bundle (`dist/browser/counter.global.js`) defines `window.Counter` a
 | `Counter.counter(target, options)` | Same as `counter`                                                                |
 | `Counter.autoCounter(options)`     | Same as `autoCounter`                                                            |
 | `Counter.animateNumber(options)`   | Same as `animateNumber`                                                          |
+| `Counter.getCounter(element)`      | Same as `getCounter`                                                             |
 | `Counter.auto(options)`            | Starts, or restarts, the automatic run with `options` and returns its controller |
 | `Counter.controller`               | The controller of the automatic run, or `null`                                   |
 

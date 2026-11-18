@@ -75,6 +75,46 @@ export const parseNumber = (
   return Number.isFinite(value) ? { value, decimals: fractionDigits(normalized) } : null
 }
 
+/** The text around the number in a rendered value, and how its digits are written. */
+export interface NumberShape {
+  /** Text before the number, without its sign: `'$'` in `'$8,000'`. */
+  prefix: string
+  /** Text after the number: `' €'` in `'8.000,45 €'`. */
+  suffix: string
+  /** Digits before the decimal separator. */
+  integerDigits: number
+  /** Whether those digits are written with a group separator (`8,000`, not `8000`). */
+  grouped: boolean
+}
+
+const isDigit = (char: string | undefined) => char !== undefined && char >= '0' && char <= '9'
+
+/**
+ * Describe how a number is written in `text`: `'$8,000'` has the prefix `'$'`
+ * and grouped digits, `'8000 visits'` the suffix `' visits'` and ungrouped
+ * digits. Returns `null` when the text has no digit.
+ */
+export const readShape = (text: string, locale?: string): NumberShape | null => {
+  let first = -1
+  let last = -1
+  for (let i = 0; i < text.length; i++) {
+    if (!isDigit(text[i])) continue
+    if (first < 0) first = i
+    last = i
+  }
+  if (first < 0) return null
+  const decimal = text.indexOf(decimalSeparator(locale), first)
+  const integer = text.slice(first, decimal > first && decimal < last ? decimal : last + 1)
+  let start = first
+  if (text[start - 1] === '-' || text[start - 1] === '−') start--
+  return {
+    prefix: text.slice(0, start),
+    suffix: text.slice(last + 1),
+    integerDigits: integer.replace(/\D/g, '').length,
+    grouped: /\D/.test(integer),
+  }
+}
+
 export const safeLocale = (locale: string | undefined) => {
   try {
     return Intl.NumberFormat.supportedLocalesOf(locale ?? []).length ? locale : undefined
@@ -87,8 +127,16 @@ export const safeLocale = (locale: string | undefined) => {
 /* Counter                                                                   */
 /* ------------------------------------------------------------------------ */
 
-/** `pending` (showing `from`), `counting` or `done`. */
-export type CounterState = 'pending' | 'counting' | 'done'
+/** `pending` (showing `from`), `counting`, `paused` or `done`. */
+export type CounterState = 'pending' | 'counting' | 'paused' | 'done'
+
+export const STARTS = ['visible', 'load', 'manual'] as const
+
+/**
+ * When counting starts: once the element is `visible` (default), on `load`
+ * (as soon as it is set up), or `manual` (when you call `start()`).
+ */
+export type CounterStart = (typeof STARTS)[number]
 
 export interface CounterOptions {
   /** Starting value. Defaults to `0`. */
@@ -106,6 +154,12 @@ export interface CounterOptions {
   easing?: Easing
   /** Decimals to show. Defaults to the decimals of the final value. */
   decimals?: number
+  /**
+   * Group separators: `'auto'` (default) writes digits the way the HTML does,
+   * so `8000` stays `8000` and `8,000` stays `8,000`; `true` groups as the
+   * locale does (`8,000` in English); `false` never groups.
+   */
+  grouping?: boolean | 'auto'
   /** BCP 47 locale for formatting. Defaults to the closest `lang` attribute. */
   locale?: string
   /** Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or `{ notation: 'compact' }`. */
@@ -114,6 +168,8 @@ export interface CounterOptions {
   formatter?: (value: number, element: Element) => string
   /** Count again every time the element enters. Defaults to `false`. */
   repeat?: boolean
+  /** When counting starts. Defaults to `'visible'`. */
+  start?: CounterStart
   /** Scroll container. Defaults to the viewport. */
   root?: Element | Document | null
   /** Grow or shrink the root box. Defaults to `'0px'`. */
@@ -134,5 +190,55 @@ export interface AutoCounterOptions extends CounterOptions {
   observe?: boolean
 }
 
+/** Events of a counter controller. `update` runs on every frame and is not dispatched on the element. */
+export type CounterEvent = 'start' | 'update' | 'pause' | 'resume' | 'reset' | 'complete'
+
+/** What listeners receive, and the `detail` of the `counter:*` DOM events. */
+export interface CounterEventDetail {
+  element: HTMLElement
+  /** The value on screen. */
+  value: number
+  state: CounterState
+}
+
+export type CounterListener = (detail: CounterEventDetail) => void
+
+/** One element of a controller, as `getSnapshot()` reports it. */
+export interface CounterSnapshot extends CounterEventDetail {
+  from: number
+  to: number
+  /** How far the value has gone from `from` to `to`, `0` to `1`. */
+  progress: number
+}
+
+/**
+ * What `counter()` returns. Call it (or `destroy()`) to stop and restore the
+ * original markup. Commands act on every element, or only on `element`, and
+ * return the controller. After `destroy()` they do nothing.
+ */
+export interface CounterController {
+  (): void
+  /** The elements this controller counts. */
+  readonly elements: readonly HTMLElement[]
+  /** Count from the start value now, even before the element is visible. */
+  start: (element?: Element) => CounterController
+  pause: (element?: Element) => CounterController
+  resume: (element?: Element) => CounterController
+  /** Stop and show the start value again. Call `start()` to count again. */
+  reset: (element?: Element) => CounterController
+  /** Jump to the final value. */
+  finish: (element?: Element) => CounterController
+  /** Change options; attributes still win. Counting elements start again. */
+  update: (options: CounterOptions) => CounterController
+  /** Read the `data-counter-*` attributes again. */
+  refresh: () => CounterController
+  getSnapshot: () => CounterSnapshot[]
+  /** Listen to an event. Returns a function that stops listening. */
+  on: (event: CounterEvent, listener: CounterListener) => () => void
+  destroy: () => void
+}
+
 export const ATTRIBUTE = 'data-counter'
+/** DOM events are dispatched as `counter:start`, `counter:complete`, and so on. */
+export const EVENT_PREFIX = 'counter:'
 export const STATE_ATTRIBUTE = 'data-counter-state'

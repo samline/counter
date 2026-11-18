@@ -41,13 +41,76 @@ counter('.duration', {
 })
 ```
 
-## Prefixes and suffixes
+## Numbers from a backend or a CMS
 
-Keep signs and units that never change outside the counted element, so they stay put while the number changes:
+A number counts the way the HTML writes it. When your template prints a raw value such as `8000` and you want `8,000`, ask for the separators of the language with `data-counter-grouping="true"` (or `grouping: true`), and fix the decimals with `data-counter-decimals`:
+
+```html
+<p lang="en">
+  <span data-counter data-counter-grouping="true">8000</span>
+  <!-- 0 … 8,000 -->
+  <span data-counter data-counter-grouping="true" data-counter-decimals="2">8000</span>
+  <!-- 0.00 … 8,000.00 -->
+  <span data-counter data-counter-grouping="true">$8000</span>
+  <!-- $0 … $8,000 -->
+</p>
+```
+
+Without JavaScript the visitor sees the raw `8000`. If that matters, format the number on the server and put the raw value in the attribute: `<span data-counter="8000">8,000</span>`.
+
+`data-counter-grouping="false"` does the opposite, for years, IDs or codes that must never get separators: `2,026` would be wrong for a year.
+
+## Prefixes, suffixes and grouping
+
+The text of the element is the template: what comes before and after the number stays while it counts, and digits written without a group separator stay that way. `format` keeps the prefix and suffix unless its style is `currency`, `percent` or `unit`; `formatter` replaces the whole text.
+
+```html
+<span data-counter>$8,000</span>
+<!-- $0 … $8,000 -->
+<span data-counter>8000 visits</span>
+<!-- 0 visits … 8000 visits -->
+<span data-counter>8,000.45</span>
+<!-- 0.00 … 8,000.45 -->
+```
+
+Text outside the element works too, and keeps the counted element short:
 
 ```html
 +<span data-counter="42">42</span>% <span data-counter="4.9">4.9</span> / 5
 ```
+
+## Clocks, durations and dates
+
+A counter animates one number. To show it as a clock or a date, count the smallest unit and let `formatter` carry it into the larger ones, so seconds roll into minutes and minutes into hours:
+
+```js
+const pad = number => String(number).padStart(2, '0')
+
+counter('#clock', {
+  to: 86399, // seconds in a day, minus one
+  duration: 8000,
+  easing: 'linear',
+  formatter: value => {
+    const seconds = Math.floor(value)
+    return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
+  },
+})
+```
+
+For days that roll into months and years, count days and format a date; `Intl.DateTimeFormat` handles month lengths and leap years:
+
+```js
+const start = Date.UTC(2026, 0, 1)
+const day = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' })
+
+counter('#date', {
+  to: 365,
+  duration: 6000,
+  formatter: days => day.format(start + Math.floor(days) * 86_400_000),
+})
+```
+
+These are simulations: they run for `duration`, not on the wall clock.
 
 ## A steady layout
 

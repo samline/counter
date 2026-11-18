@@ -8,7 +8,7 @@ sidebar:
   order: 4
 ---
 
-`counter` returns a cleanup that also restores the original text, so it fits every framework's mount and unmount hooks. Render the final value; the counter replaces it only while animating.
+`counter` returns a controller that is also its cleanup (call it, or its `destroy()`), and cleanup restores the original markup, so it fits every framework's mount and unmount hooks. Render the final value; the counter replaces it only while animating.
 
 ## React
 

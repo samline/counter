@@ -1,4 +1,4 @@
-import { animateNumber, autoCounter, counter } from '../vanilla/index.js'
+import { animateNumber, autoCounter, counter, getCounter } from '../vanilla/index.js'
 import type { AutoInitController } from '../vanilla/index.js'
 
 /**
@@ -17,6 +17,7 @@ const api = {
   counter,
   autoCounter,
   animateNumber,
+  getCounter,
   /** Start (or restart) automatic counting. Returns the controller. */
   auto: (options?: Parameters<typeof autoCounter>[0]) => {
     controller?.destroy()
@@ -43,4 +44,4 @@ if (!manual && typeof document !== 'undefined') {
   }
 }
 
-export { animateNumber, autoCounter, counter }
+export { animateNumber, autoCounter, counter, getCounter }

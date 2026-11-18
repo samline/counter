@@ -1,9 +1,24 @@
-export { EASINGS, parseNumber, ATTRIBUTE, STATE_ATTRIBUTE } from './counter.js'
+export {
+  EASINGS,
+  STARTS,
+  parseNumber,
+  readShape,
+  ATTRIBUTE,
+  STATE_ATTRIBUTE,
+  EVENT_PREFIX,
+} from './counter.js'
 export type {
   EasingName,
   Easing,
   AnimateNumberOptions,
+  NumberShape,
   CounterState,
+  CounterStart,
+  CounterEvent,
+  CounterEventDetail,
+  CounterListener,
+  CounterSnapshot,
+  CounterController,
   CounterOptions,
   AutoCounterOptions,
   AutoInitController,
