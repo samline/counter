@@ -2,7 +2,7 @@
   "package": {
     "name": "Counter",
     "npmName": "@samline/counter",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "Count numbers up (or down) as they scroll into view, with easing, decimals and Intl formatting, for vanilla JavaScript, any framework and plain HTML. The final value stays in the HTML.",
     "author": "Samuel Olvera (samline)",
     "license": "MIT",
@@ -29,7 +29,7 @@
     "accentDark": "#fb923c"
   },
   "delivery": {
-    "cdnScript": "https://cdn.jsdelivr.net/npm/@samline/counter@1.3.0/dist/browser/counter.global.js",
+    "cdnScript": "https://cdn.jsdelivr.net/npm/@samline/counter@1.4.0/dist/browser/counter.global.js",
     "cdnStylesheet": null
   },
   "dev": {
