@@ -33,10 +33,15 @@ import './_shared.css'
 
 <script>
   import { counter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
 
-  const list = document.querySelector('[data-preview="locales"]')!
-  counter(list.querySelector('[data-usd]'), { format: { style: 'currency', currency: 'USD' } })
-  counter(list.querySelectorAll('[data-plain]'))
+  preview('locales', root => {
+    const list = root.querySelector('[data-preview="locales"]')!
+    return [
+      counter(list.querySelector('[data-usd]'), { format: { style: 'currency', currency: 'USD' } }),
+      counter(list.querySelectorAll('[data-plain]')),
+    ]
+  })
 </script>
 
 <style>

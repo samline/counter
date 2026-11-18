@@ -280,6 +280,18 @@ describe('lifecycle', () => {
     expect(node.textContent).toBe('100')
   })
 
+  it('restores inner markup, not only text, on cleanup', () => {
+    const node = el({ 'data-counter': '100' })
+    node.innerHTML = '100<sup>+</sup>'
+    const sup = node.querySelector('sup')
+    const stop = counter(node, { duration: 1000 })
+    emit(node, 'in')
+    run(100)
+    stop()
+    expect(node.innerHTML).toBe('100<sup>+</sup>')
+    expect(node.querySelector('sup')).toBe(sup)
+  })
+
   it('autoCounter counts matching elements, including later ones', async () => {
     vi.useRealTimers()
     const settle = () => new Promise(resolve => setTimeout(resolve, 0))

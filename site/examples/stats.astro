@@ -28,9 +28,12 @@ const stats = [
 
 <script>
   import { autoCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
 
-  const box = document.querySelector<HTMLElement>('[data-preview="stats"]')!
-  autoCounter({ scope: box, root: box })
+  preview('stats', root => {
+    const box = root.querySelector<HTMLElement>('[data-preview="stats"]')!
+    return autoCounter({ scope: box, root: box })
+  })
 </script>
 
 <style>

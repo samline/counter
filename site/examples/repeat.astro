@@ -28,7 +28,10 @@ import './_shared.css'
 
 <script>
   import { autoCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
 
-  const box = document.querySelector<HTMLElement>('[data-preview="repeat"]')!
-  autoCounter({ scope: box, root: box })
+  preview('repeat', root => {
+    const box = root.querySelector<HTMLElement>('[data-preview="repeat"]')!
+    return autoCounter({ scope: box, root: box })
+  })
 </script>

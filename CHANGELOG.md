@@ -2,7 +2,11 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
-## Unreleased
+## [1.0.1] - 2026-11-17
+
+### Fixed
+
+- Cleanup restores the element's original child nodes instead of only its text, so markup inside a counter (for example `100<sup>+</sup>`) survives `destroy()` and removal.
 
 ### Changed
 

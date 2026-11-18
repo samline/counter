@@ -61,7 +61,7 @@ const resolveEasing = (easing: Easing = 'ease-out') =>
  * function that cancels it. Without `requestAnimationFrame` (on the server),
  * or with a duration of `0`, it jumps to `to` at once.
  */
-export function animateNumber({
+export const animateNumber = ({
   from = 0,
   to,
   duration = 2000,
@@ -69,7 +69,7 @@ export function animateNumber({
   easing,
   onUpdate,
   onComplete,
-}: AnimateNumberOptions): () => void {
+}: AnimateNumberOptions): (() => void) => {
   const ease = resolveEasing(easing)
   const finish = () => {
     onUpdate(to)
@@ -195,7 +195,8 @@ interface Setup {
   easing: Easing
   repeat: boolean
   format: (value: number) => string
-  original: string
+  /** The element's own child nodes, restored on cleanup so inner markup survives. */
+  original: Node[]
 }
 
 const prepare = (element: HTMLElement, options: CounterOptions): Setup | null => {
@@ -206,6 +207,7 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
       undefined
   )
   const original = element.textContent ?? ''
+  const nodes = Array.from(element.childNodes)
 
   // Final value: the attribute, then the option, then the visible text.
   const raw = element.getAttribute(ATTRIBUTE)?.trim() ?? ''
@@ -256,7 +258,7 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
     easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     format,
-    original,
+    original: nodes,
   }
 }
 
@@ -268,12 +270,12 @@ const prepare = (element: HTMLElement, options: CounterOptions): Setup | null =>
  * script runs, each element shows `from` and counts to the final value once
  * half of it is visible. With reduced motion it keeps the final value.
  *
- * Returns a cleanup that stops everything and restores the original text.
+ * Returns a cleanup that stops everything and restores the original content.
  */
-export function counter(
+export const counter = (
   target: ElementTarget = `[${ATTRIBUTE}]`,
   options: CounterOptions = {}
-): () => void {
+): (() => void) => {
   if (!isBrowser()) return noop
 
   const setups = new Map<HTMLElement, Setup>()
@@ -383,7 +385,7 @@ export function counter(
     cleanups.forEach(cleanup => cleanup())
     setups.forEach((setup, element) => {
       stop(element)
-      element.textContent = setup.original
+      element.replaceChildren(...setup.original)
       element.removeAttribute(STATE_ATTRIBUTE)
     })
   }
@@ -394,12 +396,12 @@ export function counter(
  * later, and clean up elements that are removed. Returns a controller with
  * `refresh()` and `destroy()`.
  */
-export function autoCounter({
+export const autoCounter = ({
   selector = `[${ATTRIBUTE}]`,
   scope,
   observe = true,
   ...options
-}: AutoCounterOptions = {}): AutoInitController {
+}: AutoCounterOptions = {}): AutoInitController => {
   return autoInit({
     selector,
     observe,
