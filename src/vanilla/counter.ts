@@ -17,6 +17,7 @@ import {
   type Easing,
   isEasingName,
   type AnimateNumberOptions,
+  type NumberAnimation,
   resolveEasing,
   fractionDigits,
   parseNumber,
@@ -47,17 +48,9 @@ import {
 /* Tween                                                                     */
 /* ------------------------------------------------------------------------ */
 
-interface Tween {
-  pause: () => void
-  resume: () => void
-  cancel: () => void
-}
-
-const stillTween: Tween = { pause: noop, resume: noop, cancel: noop }
-
 /**
- * The eased, time-based tween behind `animateNumber`, with pause and resume.
- * Time spent paused does not count.
+ * The eased, time-based tween behind `animateNumber`, with pause, resume and
+ * retarget. Time spent paused does not count.
  */
 const createTween = ({
   from = 0,
@@ -67,65 +60,84 @@ const createTween = ({
   easing,
   onUpdate,
   onComplete,
-}: AnimateNumberOptions): Tween => {
+}: AnimateNumberOptions): NumberAnimation => {
   const ease = resolveEasing(easing)
-  const finish = () => {
-    onUpdate(to)
-    onComplete?.()
-  }
-
-  if (duration <= 0 || typeof requestAnimationFrame !== 'function') {
-    finish()
-    return stillTween
-  }
-
+  const frames = typeof requestAnimationFrame === 'function'
+  let start = from
+  let end = to
+  let length = duration
+  let value = from
   let frame = 0
   // Negative while waiting for the delay.
   let elapsed = -Math.max(0, delay)
   let last: number | null = null
-  let running = true
+  let running = false
   let over = false
+  let cancelled = false
 
+  const emit = (next: number) => {
+    value = next
+    onUpdate(next)
+  }
+  const finish = () => {
+    over = true
+    running = false
+    emit(end)
+    onComplete?.()
+  }
   const step = (now: number) => {
     if (last !== null) elapsed += now - last
     last = now
-    const progress = Math.min(Math.max(elapsed / duration, 0), 1)
-    if (progress >= 1) {
-      over = true
-      return finish()
-    }
-    onUpdate(from + (to - from) * ease(progress))
+    const progress = Math.min(Math.max(elapsed / length, 0), 1)
+    if (progress >= 1) return finish()
+    emit(start + (end - start) * ease(progress))
     frame = requestAnimationFrame(step)
   }
-  frame = requestAnimationFrame(step)
-
-  const halt = () => {
-    cancelAnimationFrame(frame)
-    running = false
+  const play = () => {
+    if (length <= 0 || !frames) return finish()
+    running = true
     last = null
+    frame = requestAnimationFrame(step)
   }
+  const halt = () => {
+    if (frames) cancelAnimationFrame(frame)
+    running = false
+  }
+  const cancel = () => {
+    halt()
+    cancelled = over = true
+  }
+  play()
 
-  return {
+  return Object.assign(() => cancel(), {
+    cancel,
     pause: halt,
     resume: () => {
-      if (running || over) return
-      running = true
-      frame = requestAnimationFrame(step)
+      if (!running && !over) play()
     },
-    cancel: () => {
+    retarget: (next: number, nextDuration = length) => {
+      if (cancelled) return
       halt()
-      over = true
+      start = value
+      end = next
+      length = nextDuration
+      elapsed = 0
+      over = false
+      play()
     },
-  }
+    getValue: () => value,
+    isRunning: () => running,
+  })
 }
 
 /**
  * Animate a number from `from` to `to` over time, frame by frame. Returns a
- * function that cancels it. Without `requestAnimationFrame` (on the server),
- * or with a duration of `0`, it jumps to `to` at once.
+ * function that cancels it, with `pause()`, `resume()`, `retarget(to)` and
+ * `getValue()`. Without `requestAnimationFrame` (on the server), or with a
+ * duration of `0`, it jumps to `to` at once.
  */
-export const animateNumber = (options: AnimateNumberOptions): (() => void) =>
-  createTween(options).cancel
+export const animateNumber = (options: AnimateNumberOptions): NumberAnimation =>
+  createTween(options)
 
 /* ------------------------------------------------------------------------ */
 /* Setup                                                                     */
@@ -146,6 +158,8 @@ interface Setup {
   start: CounterStart
   /** Whole steps shown while counting, in the unit of the value; `0` for none. */
   step: number
+  /** Count to the new value when `data-counter` or `datetime` changes. */
+  live: boolean
   format: (value: number) => string
   /** The final value is the rendered text: put the original nodes back when done. */
   restore: boolean
@@ -322,6 +336,7 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     delay: readNumber(element, 'data-counter-delay', options.delay ?? 0),
     easing: isEasingName(easingAttribute) ? easingAttribute : (options.easing ?? 'ease-out'),
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
+    live: readBoolean(element, 'data-counter-live', options.live ?? true),
     start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
     // End on the original markup when it reads exactly like the final value.
     restore: normalize(value.format(value.to)) === normalize(original),
@@ -341,7 +356,7 @@ interface Entry {
   /** The element's own child nodes, restored on cleanup so inner markup survives. */
   nodes: Node[]
   text: string
-  tween: Tween | null
+  tween: NumberAnimation | null
   value: number
   state: CounterState
   /** Stops watching visibility. */
@@ -354,6 +369,9 @@ const owners = new WeakMap<HTMLElement, CounterController>()
 const inert = (): CounterController => {
   const controller: CounterController = Object.assign(() => {}, {
     elements: [] as readonly HTMLElement[],
+    set: () => controller,
+    increment: () => controller,
+    decrement: () => controller,
     start: () => controller,
     pause: () => controller,
     resume: () => controller,
@@ -462,19 +480,21 @@ export const counter = (
     emit('complete', element)
   }
 
-  const begin = (element: HTMLElement) => {
+  const begin = (element: HTMLElement, from?: number) => {
     const { setup } = entries.get(element)!
     stop(element)
     if (prefersReducedMotion()) return complete(element)
-    show(element, setup.from)
+    const start = from ?? setup.from
+    show(element, start)
     setState(element, 'counting')
     current.onStart?.(element)
     emit('start', element)
     entries.get(element)!.tween = createTween({
-      from: setup.from,
+      from: start,
       to: setup.to,
       duration: setup.duration,
-      delay: setup.delay,
+      // Only the first count waits; new values move at once.
+      delay: from === undefined ? setup.delay : 0,
       easing: setup.easing,
       onUpdate: value => {
         show(element, value)
@@ -550,6 +570,41 @@ export const counter = (
       return controller
     }
 
+  /** Count from the value on screen to a new final value. */
+  const glide = (element: HTMLElement, setup: Setup) => {
+    const entry = entries.get(element)!
+    entry.setup = { ...setup, restore: normalize(setup.format(setup.to)) === normalize(entry.text) }
+    // Waiting elements count to the new value when they start.
+    if (entry.state !== 'pending') begin(element, entry.value)
+  }
+
+  const retarget =
+    (next: (entry: Entry, amount: number) => number) =>
+    (amount = 1, element?: Element): CounterController => {
+      targets(element).forEach(target => {
+        const entry = entries.get(target)!
+        const to = next(entry, amount)
+        if (Number.isFinite(to)) glide(target, { ...entry.setup, to })
+      })
+      return controller
+    }
+
+  // Live values: count to a new `data-counter` or `datetime` as soon as it changes.
+  const mutations =
+    typeof MutationObserver === 'function'
+      ? new MutationObserver(records =>
+          new Set(records.map(record => record.target as HTMLElement)).forEach(element => {
+            const entry = entries.get(element)
+            if (!active || !entry?.setup.live) return
+            const setup = prepare(element, entry.text, current)
+            if (setup && setup.to !== entry.setup.to) glide(element, setup)
+          })
+        )
+      : null
+  entries.forEach((_, element) =>
+    mutations?.observe(element, { attributes: true, attributeFilter: [ATTRIBUTE, 'datetime'] })
+  )
+
   const reprepare = () => {
     entries.forEach((entry, element) => {
       const setup = prepare(element, entry.text, current)
@@ -567,6 +622,7 @@ export const counter = (
     if (!active) return
     active = false
     stopMotion()
+    mutations?.disconnect()
     entries.forEach((entry, element) => {
       entry.unwatch()
       stop(element)
@@ -580,6 +636,9 @@ export const counter = (
   const controller: CounterController = Object.assign(() => destroy(), {
     elements: [...entries.keys()] as readonly HTMLElement[],
     start: command(element => begin(element)),
+    set: (value: number, element?: Element) => retarget(() => value)(0, element),
+    increment: retarget((entry, by) => entry.setup.to + by),
+    decrement: retarget((entry, by) => entry.setup.to - by),
     pause: command((element, entry) => {
       if (entry.state !== 'counting') return
       entry.tween?.pause()
@@ -620,7 +679,12 @@ export const counter = (
           state,
           from: setup.from,
           to: setup.to,
-          progress: span === 0 ? (state === 'done' ? 1 : 0) : (value - setup.from) / span,
+          progress:
+            span === 0
+              ? state === 'done'
+                ? 1
+                : 0
+              : Math.min(Math.max((value - setup.from) / span, 0), 1),
         }
       }),
     on: (event: CounterEvent, listener: CounterListener) => {

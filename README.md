@@ -84,6 +84,15 @@ clock.on('complete', ({ value }) => console.log(value))
 clock.start()
 ```
 
+### Live numbers
+
+`set(value)` counts from the value on screen to a new one, `increment()` and `decrement()` add up quick clicks, and changing `data-counter` from your server, htmx or a framework counts to the new value on its own. `animateNumber` can `pause()`, `resume()` and `retarget(to)`.
+
+```js
+const items = counter('#items')
+document.querySelector('#add').addEventListener('click', () => items.increment())
+```
+
 ### Clocks and dates
 
 `data-counter-as="time"` counts seconds in the pattern of the text, so `23:59:59` carries seconds into minutes and hours; `data-counter-as="date"` counts day by day up to a `datetime`, and months and years roll over on their own. `data-counter-step` shows whole steps, such as a week at a time.

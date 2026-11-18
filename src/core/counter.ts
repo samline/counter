@@ -38,6 +38,23 @@ export interface AnimateNumberOptions {
   onComplete?: () => void
 }
 
+/**
+ * What `animateNumber` returns: call it (or `cancel()`) to stop. `retarget`
+ * glides from the current value to a new one.
+ */
+export interface NumberAnimation {
+  (): void
+  cancel: () => void
+  pause: () => void
+  /** Continue after `pause()`; time spent paused does not count. */
+  resume: () => void
+  /** Count from the current value to `to`, over `duration` (the original one by default). */
+  retarget: (to: number, duration?: number) => void
+  /** The last value sent to `onUpdate`. */
+  getValue: () => number
+  isRunning: () => boolean
+}
+
 export const resolveEasing = (easing: Easing = 'ease-out') =>
   typeof easing === 'function'
     ? easing
@@ -267,6 +284,11 @@ export interface CounterOptions {
   repeat?: boolean
   /** When counting starts. Defaults to `'visible'`. */
   start?: CounterStart
+  /**
+   * Count to the new value when `data-counter` (or `datetime`) changes, for
+   * numbers your server or script updates. Defaults to `true`.
+   */
+  live?: boolean
   /** Scroll container. Defaults to the viewport. */
   root?: Element | Document | null
   /** Grow or shrink the root box. Defaults to `'0px'`. */
@@ -317,6 +339,15 @@ export interface CounterController {
   (): void
   /** The elements this controller counts. */
   readonly elements: readonly HTMLElement[]
+  /**
+   * Count from the value on screen to `value`, which becomes the final value.
+   * A number still waiting to start counts to it when it starts.
+   */
+  set: (value: number, element?: Element) => CounterController
+  /** Add `by` (default `1`) to the final value and count to it. */
+  increment: (by?: number, element?: Element) => CounterController
+  /** Subtract `by` (default `1`) from the final value and count to it. */
+  decrement: (by?: number, element?: Element) => CounterController
   /** Count from the start value now, even before the element is visible. */
   start: (element?: Element) => CounterController
   pause: (element?: Element) => CounterController

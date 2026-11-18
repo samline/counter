@@ -10,6 +10,8 @@ sidebar:
 
 `counter` returns a controller that is also its cleanup (call it, or its `destroy()`), and cleanup restores the original markup, so it fits every framework's mount and unmount hooks. Render the final value; the counter replaces it only while animating.
 
+When the value changes later, you do not need to tear the counter down: since 1.3.0, updating `data-counter` (for example by binding it in your template) counts from the value on screen to the new one, and the controller's `set(value)` does the same from code.
+
 ## React
 
 ```jsx

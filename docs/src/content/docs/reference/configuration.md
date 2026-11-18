@@ -24,6 +24,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-locale`     | BCP 47 tag                          | Language for formatting and for reading the text                                          |
 | `data-counter-repeat`     | present, or `false`                 | Reset on leaving, count again on every entry                                              |
 | `data-counter-start`      | `visible`, `load`, `manual`         | When counting starts (since 1.1.0)                                                        |
+| `data-counter-live`       | present, or `false`                 | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)  |
 | `data-counter-grouping`   | `auto`, `true`, `false`             | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)   |
 | `data-counter-as`         | `number`, `time`, `date`            | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)  |
 | `data-counter-step`       | number                              | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)         |
@@ -45,6 +46,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `formatter(value, element)`    | —                                      | Returns the text yourself; replaces `locale`, `decimals` and `format`              |
 | `repeat`                       | `false`                                | Count again every time the number enters                                           |
 | `start`                        | `'visible'`                            | `'visible'`, `'load'` (right away) or `'manual'` (when you call `start()`)         |
+| `live`                         | `true`                                 | Count to a new `data-counter` or `datetime` when it changes                        |
 | `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups |
 | `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                 |
 | `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact        |

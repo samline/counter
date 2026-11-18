@@ -114,4 +114,45 @@ test.describe('counter copyable examples', () => {
     await expect(times.first()).toHaveAttribute('data-counter-state', 'counting')
     await expect(times).toHaveText(rendered, { timeout: 10_000 })
   })
+
+  test('live numbers count to new values from buttons and attributes', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'live'))
+    const price = page.locator('#price')
+    const items = page.locator('#items')
+    const visitors = page.locator('#visitors')
+    await expect(price).toHaveText('$12')
+    await page.getByRole('button', { name: 'Yearly' }).click()
+    await expect(price).toHaveText('$10')
+    await expect(page.getByRole('button', { name: 'Yearly' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    await expect(items).toHaveText('1')
+    const add = page.getByRole('button', { name: 'Add one item' })
+    await add.click()
+    await add.click()
+    await add.click()
+    await expect(items).toHaveText('4')
+    const remove = page.getByRole('button', { name: 'Remove one item' })
+    for (let i = 0; i < 6; i++) await remove.click()
+    await expect(items).toHaveText('0')
+
+    // A new value arrives every two seconds and counts in 800ms: wait for one
+    // that has finished counting, then compare the text with it in one read.
+    const first = await visitors.getAttribute('data-counter')
+    await expect
+      .poll(
+        () =>
+          visitors.evaluate((node, initial) => {
+            const value = node.getAttribute('data-counter')
+            const done = node.getAttribute('data-counter-state') === 'done'
+            return (
+              done && value !== initial && node.textContent === Number(value).toLocaleString('en')
+            )
+          }, first),
+        { timeout: 8000 }
+      )
+      .toBe(true)
+  })
 })

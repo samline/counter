@@ -2,6 +2,20 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Live numbers: the controller's `set(value)`, `increment(by)` and `decrement(by)` count from the value on screen to a new final value, for one element or all of them. Quick `increment` calls add up.
+- Changing `data-counter` (or `datetime` with `as: 'date'`) counts to the new value on its own; turn it off with `live: false` or `data-counter-live="false"`.
+- `animateNumber` returns its cancel function with `pause()`, `resume()`, `retarget(to, duration?)`, `getValue()` and `isRunning()`. The `NumberAnimation` type describes it.
+- Live numbers example: a monthly or yearly price, a cart with add and remove buttons, and visitors updated through the attribute.
+
+### Changed
+
+- `getSnapshot()` keeps `progress` between `0` and `1` after a new value.
+- Size budgets: 5.6 KB gzip for the main entry and the browser bundle (were 5.3 KB).
+
 ## [1.2.0] - 2026-11-18
 
 ### Added

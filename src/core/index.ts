@@ -18,6 +18,7 @@ export type {
   EasingName,
   Easing,
   AnimateNumberOptions,
+  NumberAnimation,
   NumberShape,
   CounterState,
   CounterStart,

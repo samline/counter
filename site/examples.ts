@@ -149,6 +149,98 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'live',
+    tab: 'Live numbers',
+    title: 'Numbers that change after they count',
+    description:
+      'set() counts from the value on screen to a new one, increment() and decrement() add up quick clicks, and changing data-counter from your server or script counts to the new value on its own.',
+    files: {
+      html: `<div class="live" lang="en">
+  <section>
+    <h3>Price</h3>
+    <p class="big"><span id="price" data-counter="12">$12</span> per month</p>
+    <div class="actions" role="group" aria-label="Billing">
+      <button type="button" data-price="12" aria-pressed="true">Monthly</button>
+      <button type="button" data-price="10" aria-pressed="false">Yearly</button>
+    </div>
+  </section>
+  <section>
+    <h3>Cart</h3>
+    <p class="big"><span id="items" data-counter="1">1</span> items</p>
+    <div class="actions">
+      <button type="button" id="remove" aria-label="Remove one item">-</button>
+      <button type="button" id="add" aria-label="Add one item">+</button>
+    </div>
+  </section>
+  <section>
+    <h3>Visitors right now</h3>
+    <p class="big"><span id="visitors" data-counter="1280" data-counter-duration="800">1,280</span></p>
+    <p class="note">A new value arrives every two seconds.</p>
+  </section>
+</div>`,
+      css: `.live { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1.5rem; }
+.live h3 { margin: 0 0 0.25rem; font-size: 0.875rem; }
+.big { margin: 0 0 0.5rem; font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 0.5rem; }
+.actions button[aria-pressed='true'] { font-weight: 700; }
+.note { margin: 0; font-size: 0.875rem; }`,
+      js: `// Start counting now (this replaces the automatic start), so getCounter finds
+// each number's controller right away.
+Counter.auto()
+
+const price = Counter.getCounter(document.querySelector('#price'))
+document.querySelectorAll('[data-price]').forEach(button =>
+  button.addEventListener('click', () => {
+    document.querySelectorAll('[data-price]').forEach(other =>
+      other.setAttribute('aria-pressed', String(other === button))
+    )
+    price.set(Number(button.dataset.price))
+  })
+)
+
+// increment and decrement add up, so quick clicks count to the right total.
+const items = Counter.getCounter(document.querySelector('#items'))
+document.querySelector('#add').addEventListener('click', () => items.increment())
+document.querySelector('#remove').addEventListener('click', () => {
+  if (items.getSnapshot()[0].to > 0) items.decrement()
+})
+
+// Your server or script only changes the attribute; the number counts to it.
+const visitors = document.querySelector('#visitors')
+setInterval(() => {
+  const next = Number(visitors.dataset.counter) + Math.round(Math.random() * 60 - 25)
+  visitors.dataset.counter = String(Math.max(0, next))
+}, 2000)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+const price = getCounter(document.querySelector('#price'))
+document.querySelectorAll('[data-price]').forEach(button =>
+  button.addEventListener('click', () => {
+    document.querySelectorAll('[data-price]').forEach(other =>
+      other.setAttribute('aria-pressed', String(other === button))
+    )
+    price.set(Number(button.dataset.price))
+  })
+)
+
+// increment and decrement add up, so quick clicks count to the right total.
+const items = getCounter(document.querySelector('#items'))
+document.querySelector('#add').addEventListener('click', () => items.increment())
+document.querySelector('#remove').addEventListener('click', () => {
+  if (items.getSnapshot()[0].to > 0) items.decrement()
+})
+
+// Your server or script only changes the attribute; the number counts to it.
+const visitors = document.querySelector('#visitors')
+setInterval(() => {
+  const next = Number(visitors.dataset.counter) + Math.round(Math.random() * 60 - 25)
+  visitors.dataset.counter = String(Math.max(0, next))
+}, 2000)`,
+    },
+  },
+  {
     id: 'controls',
     tab: 'Controls',
     title: 'Start, pause and finish a simulated clock',

@@ -32,19 +32,22 @@ An element is counted by one controller at a time. Calling `counter` again for e
 
 Since 1.1.0. Commands act on every element of the controller, or only on `element` when you pass one, and return the controller so they can be chained. After `destroy()` they do nothing.
 
-| Member                | Description                                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `elements`            | The elements this controller counts                                                                            |
-| `start(element?)`     | Count from the start value now, even if the element is not visible yet                                         |
-| `pause(element?)`     | Pause a running count; paused time does not count                                                              |
-| `resume(element?)`    | Continue a paused count                                                                                        |
-| `reset(element?)`     | Stop and show the start value; call `start()` to count again                                                   |
-| `finish(element?)`    | Jump to the final value                                                                                        |
-| `update(options)`     | Merge options (attributes still win). Waiting elements show the new start, running ones count again            |
-| `refresh()`           | Read the `data-counter-*` attributes again                                                                     |
-| `getSnapshot()`       | One `{ element, value, state, from, to, progress }` per element; `progress` goes from `0` to `1`               |
-| `on(event, listener)` | Listen to `start`, `update`, `pause`, `resume`, `reset` or `complete`; returns a function that stops listening |
-| `destroy()`           | Stop and restore the original markup                                                                           |
+| Member                     | Description                                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `elements`                 | The elements this controller counts                                                                            |
+| `set(value, element?)`     | Count from the value on screen to `value`, which becomes the final value (since 1.3.0)                         |
+| `increment(by?, element?)` | Add `by` (default `1`) to the final value and count to it; quick calls add up (since 1.3.0)                    |
+| `decrement(by?, element?)` | Subtract `by` (default `1`) from the final value and count to it (since 1.3.0)                                 |
+| `start(element?)`          | Count from the start value now, even if the element is not visible yet                                         |
+| `pause(element?)`          | Pause a running count; paused time does not count                                                              |
+| `resume(element?)`         | Continue a paused count                                                                                        |
+| `reset(element?)`          | Stop and show the start value; call `start()` to count again                                                   |
+| `finish(element?)`         | Jump to the final value                                                                                        |
+| `update(options)`          | Merge options (attributes still win). Waiting elements show the new start, running ones count again            |
+| `refresh()`                | Read the `data-counter-*` attributes again                                                                     |
+| `getSnapshot()`            | One `{ element, value, state, from, to, progress }` per element; `progress` goes from `0` to `1`               |
+| `on(event, listener)`      | Listen to `start`, `update`, `pause`, `resume`, `reset` or `complete`; returns a function that stops listening |
+| `destroy()`                | Stop and restore the original markup                                                                           |
 
 ```js
 const total = counter('#total', { start: 'manual', duration: 1200 })
@@ -55,6 +58,25 @@ document.querySelector('#hold').addEventListener('click', () => total.pause())
 ```
 
 Listeners receive `{ element, value, state }`, where `value` is the number on screen. `update` runs on every frame.
+
+### Live numbers
+
+Since 1.3.0, a number can change after it counts. `set()`, `increment()` and `decrement()` count from the value on screen to the new one, with the element's `duration` and `easing` and no `delay`; each new value is a new `start`, and its `complete` follows. A number still waiting to start counts to the new value when it starts. With reduced motion the new value shows at once.
+
+```js
+const price = counter('#price')
+document.querySelector('#yearly').addEventListener('click', () => price.set(10))
+
+const items = counter('#items')
+document.querySelector('#add').addEventListener('click', () => items.increment())
+```
+
+Changing `data-counter` (or `datetime` with `as: 'date'`) does the same, so a server, htmx swap or framework that only updates the attribute gets a counting number for free. New decimals come from the new value. Turn it off per element with `data-counter-live="false"`, or for a call with `live: false`.
+
+```js
+// Somewhere your data arrives:
+visitors.dataset.counter = String(latest)
+```
 
 ### DOM events
 
@@ -112,6 +134,21 @@ const cancel = animateNumber({
 
 It is time-based, so it lasts the same at any frame rate. `onUpdate` receives `to` exactly on the last call; `onComplete` is not called when cancelled. Without `requestAnimationFrame`, or with `duration: 0`, it jumps to `to` at once.
 
+Since 1.3.0 the returned function also has controls; calling it still cancels:
+
+| Member                    | Description                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| `cancel()`                | Stop for good; same as calling the function                                           |
+| `pause()` / `resume()`    | Stop and continue; time spent paused does not count                                   |
+| `retarget(to, duration?)` | Count from the current value to `to`, also after it finished; `onComplete` runs again |
+| `getValue()`              | The last value sent to `onUpdate`                                                     |
+| `isRunning()`             | Whether it is counting right now                                                      |
+
+```js
+const gauge = animateNumber({ to: 40, onUpdate: v => meter.style.setProperty('--value', v) })
+socket.addEventListener('message', event => gauge.retarget(Number(event.data), 600))
+```
+
 ## parseNumber(text, locale?)
 
 ```ts
@@ -127,7 +164,7 @@ import { EASINGS } from '@samline/counter'
 // { linear, 'ease-out', 'ease-in-out' }: functions from progress to eased progress
 ```
 
-`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind` and `ClockShape` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
+`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix and grouping of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
 
 ## window.Counter
 
