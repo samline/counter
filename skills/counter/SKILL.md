@@ -1,14 +1,14 @@
 ---
 name: counter
 description: Use @samline/counter to animate numbers counting up or down as they scroll into view, with easing, decimals and Intl formatting, in vanilla JS, any framework or plain HTML, while keeping the real value in the HTML.
-package-version: '1.0.1'
+package-version: '1.1.0'
 ---
 
 # @samline/counter
 
-Build against the installed version; this skill describes 1.0.1.
+Build against the installed version; this skill describes 1.1.0.
 
-- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.0.1/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
+- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.1.0/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
 - **Markup first:** render the final value and put the plain number in the attribute: `<span data-counter="12480">12,480</span>`. Empty `data-counter` reads the text in the element's `lang`. Also `data-counter-from` (higher counts down), `-duration`, `-delay` (ms), `-easing` (`ease-out`, `ease-in-out`, `linear`), `-decimals`, `-locale`, `-repeat`, `-start` (`visible`, `load`, `manual`; 1.1.0+), `-grouping` (`auto`, `true`, `false`; 1.1.0+). Attributes win over options.
 - **Script:** `autoCounter(options)` for a whole page (also picks up elements added later; returns `{ refresh, destroy }`), or `const c = counter(target, { from, to, duration, delay, easing, decimals, locale, format, formatter, repeat, start, grouping, root, rootMargin, threshold, onStart, onUpdate, onComplete })`.
 - **Controller (1.1.0+):** `c.start(el?)`, `pause`, `resume`, `reset` (shows `from`, then call `start()`), `finish`, `update(options)`, `refresh()` (re-reads attributes), `getSnapshot()` (`{ element, value, state, from, to, progress }[]`), `c.on('start'|'update'|'pause'|'resume'|'reset'|'complete', ({ element, value, state }) => {})` returns an unsubscribe. `c()` or `c.destroy()` restores the original markup (1.0's `stop()` still works). Bubbling DOM events `counter:start`, `counter:pause`, `counter:resume`, `counter:reset`, `counter:complete` (not `update`). `getCounter(element)` returns the controller of an element `autoCounter` or the CDN bundle started. One controller per element: calling `counter` again returns the existing one.
