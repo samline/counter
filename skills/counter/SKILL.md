@@ -1,14 +1,14 @@
 ---
 name: counter
 description: Use @samline/counter to animate numbers counting up or down as they scroll into view, with easing, decimals and Intl formatting, in vanilla JS, any framework or plain HTML, while keeping the real value in the HTML.
-package-version: '1.2.0'
+package-version: '1.3.0'
 ---
 
 # @samline/counter
 
-Build against the installed version; this skill describes 1.2.0.
+Build against the installed version; this skill describes 1.3.0.
 
-- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.2.0/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
+- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.3.0/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
 - **Markup first:** render the final value and put the plain number in the attribute: `<span data-counter="12480">12,480</span>`. Empty `data-counter` reads the text in the element's `lang`. Also `data-counter-from` (higher counts down), `-duration`, `-delay` (ms), `-easing` (`ease-out`, `ease-in-out`, `linear`), `-decimals`, `-locale`, `-repeat`, `-start` (`visible`, `load`, `manual`; 1.1.0+), `-grouping` (`auto`, `true`, `false`; 1.1.0+), `-as` (`number`, `time`, `date`; 1.2.0+), `-step`, `-date-style` (1.2.0+), `-live` (1.3.0+, on by default). Attributes win over options.
 - **Script:** `autoCounter(options)` for a whole page (also picks up elements added later; returns `{ refresh, destroy }`), or `const c = counter(target, { from, to, duration, delay, easing, decimals, locale, format, formatter, repeat, start, grouping, as, step, dateFormat, live, root, rootMargin, threshold, onStart, onUpdate, onComplete })`.
 - **Live numbers (1.3.0+):** `c.set(value, el?)` counts from the value on screen to `value` (new final value; no delay), `c.increment(by = 1, el?)` / `c.decrement(by, el?)` add to the final value so quick clicks add up. Changing `data-counter` (or `datetime` with `as="date"`) counts to it automatically unless `data-counter-live="false"` / `live: false`; prefer updating the attribute from server-rendered or framework code over re-creating counters. `animateNumber()` returns a callable cancel with `pause`, `resume`, `retarget(to, duration?)`, `getValue`, `isRunning`. With the CDN bundle, call `Counter.auto()` before `Counter.getCounter()` in a script that runs before the DOM is ready.
