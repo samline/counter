@@ -162,6 +162,14 @@ Reads a number written for people in `locale`: `parseNumber('1.234,5 €', 'de')
 
 Since 1.12.0, `ordinal(locale, suffixes)` returns a function that gives the ordinal suffix of the whole number nearest to a value: `ordinal('en', ORDINALS.en)(22)` is `'nd'`. `ORDINALS` holds the suffixes `counter` recognizes (`en` and `fr`), typed as `OrdinalSuffixes`: suffixes by `Intl.PluralRules` ordinal category.
 
+## defineFormat(name, format)
+
+```ts
+defineFormat(name: string, format: Intl.NumberFormatOptions | ((value: number, element: Element) => string)): void
+```
+
+Since 1.13.0. Names a format for `data-counter-format="name"` and `format: 'name'`: `Intl.NumberFormat` options, or a function that writes the text (for clocks and dates too). Elements read after the call use it; a name defined again replaces it. Both entries share the names. `parseFormat(words)` returns the `Intl.NumberFormat` options that words such as `'compact currency:USD'` stand for, and `CounterFormat` is the type of a named format. The [formatting guide](../../guides/formatting/#from-html) lists the words.
+
 ## EASINGS
 
 ```js
@@ -176,19 +184,20 @@ Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS cur
 
 ## @samline/counter/lite
 
-Since 1.8.0. The same `counter`, `autoCounter`, `getCounter`, `animateNumber`, `parseNumber`, `EASINGS`, `cubicBezier` and `isEasing`, for plain numbers only. Elements with `data-counter-as="time"` or `"date"` are not counted and keep their text; `cssVars`, `output`, `steady`, `roll`, `scramble` and `announce` (options and attributes) are ignored, and `start: 'scroll'` counts once on visibility. `counter` is also the default export. Both entries share `getCounter` and one owner per element, so an element counted by one is left alone by the other. The browser build is `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`) and defines the same `window.Counter`.
+Since 1.8.0. The same `counter`, `autoCounter`, `getCounter`, `defineFormat`, `animateNumber`, `parseNumber`, `EASINGS`, `cubicBezier` and `isEasing`, for plain numbers only. Elements with `data-counter-as="time"` or `"date"` are not counted and keep their text; `cssVars`, `output`, `steady`, `roll`, `scramble` and `announce` (options and attributes) are ignored, and `start: 'scroll'` counts once on visibility. `counter` is also the default export. Both entries share `getCounter` and one owner per element, so an element counted by one is left alone by the other. The browser build is `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`) and defines the same `window.Counter`.
 
 ## window.Counter
 
 The browser bundle (`dist/browser/counter.global.js`) defines `window.Counter` and counts every `[data-counter]` as soon as the DOM is ready.
 
-| Member                             | Description                                                                      |
-| ---------------------------------- | -------------------------------------------------------------------------------- |
-| `Counter.counter(target, options)` | Same as `counter`                                                                |
-| `Counter.autoCounter(options)`     | Same as `autoCounter`                                                            |
-| `Counter.animateNumber(options)`   | Same as `animateNumber`                                                          |
-| `Counter.getCounter(element)`      | Same as `getCounter`                                                             |
-| `Counter.auto(options)`            | Starts, or restarts, the automatic run with `options` and returns its controller |
-| `Counter.controller`               | The controller of the automatic run, or `null`                                   |
+| Member                               | Description                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| `Counter.counter(target, options)`   | Same as `counter`                                                                |
+| `Counter.autoCounter(options)`       | Same as `autoCounter`                                                            |
+| `Counter.animateNumber(options)`     | Same as `animateNumber`                                                          |
+| `Counter.getCounter(element)`        | Same as `getCounter`                                                             |
+| `Counter.defineFormat(name, format)` | Same as `defineFormat` (since 1.13.0)                                            |
+| `Counter.auto(options)`              | Starts, or restarts, the automatic run with `options` and returns its controller |
+| `Counter.controller`                 | The controller of the automatic run, or `null`                                   |
 
 Add `data-manual` to the script tag to skip the automatic start. Calling `Counter.auto()` before the DOM is ready also replaces it, so a deferred or inline script after the bundle can pass its own options. To count elements with different options, give them a class instead of `data-counter` and call `Counter.counter('.price', options)`, so the automatic run does not count them too.

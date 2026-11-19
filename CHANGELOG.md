@@ -2,6 +2,23 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `data-counter-format`: `Intl.NumberFormat` options from HTML as words: `compact`, `percent`, `scientific`, `engineering`, `currency:EUR`, `unit:kilometer-per-hour`, `long`, `narrow` and `sign`, which combine. The `format` option also takes words or a defined name.
+- `defineFormat(name, format)`, also on `window.Counter` and in the lite entry: name `Intl.NumberFormat` options or a function that writes the text (clocks and dates too) for `data-counter-format` and `format`.
+- `parseFormat(words)` and the `CounterFormat` type.
+- Named formats example: compact downloads, a percentage, euros in German, a speed and file sizes from `defineFormat`.
+
+### Fixed
+
+- Compact and scientific notation round their own way (`1.5K`, not `2K`) unless `decimals` is set, and the suffix `Intl` writes is no longer kept twice when the HTML already shows it (`1.5K` counted as `2KK`).
+
+### Changed
+
+- Size budgets: 10.5 KB gzip for the main entry and the browser bundle (were 10 KB), 7.5 KB for the lite entry and its bundle (were 7 KB).
+
 ## [1.12.0] - 2026-11-19
 
 ### Added

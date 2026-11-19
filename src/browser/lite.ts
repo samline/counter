@@ -1,10 +1,10 @@
-import { animateNumber, autoCounter, counter, getCounter } from '../lite/index.js'
+import { animateNumber, autoCounter, counter, defineFormat, getCounter } from '../lite/index.js'
 import { install } from './install.js'
 
 /**
  * The lite classic script: `window.Counter` with plain numbers only, started
  * on its own. Load it instead of `counter.global.js`, not with it.
  */
-install({ counter, autoCounter, animateNumber, getCounter })
+install({ counter, autoCounter, animateNumber, getCounter, defineFormat })
 
-export { animateNumber, autoCounter, counter, getCounter }
+export { animateNumber, autoCounter, counter, defineFormat, getCounter }

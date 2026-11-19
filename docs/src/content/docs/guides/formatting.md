@@ -27,7 +27,51 @@ counter('.followers', { format: { notation: 'compact' } }) // 12K, 1.2M
 counter('.speed', { format: { style: 'unit', unit: 'kilometer-per-hour' } })
 ```
 
-Fraction digits in `format` win over the decimals taken from the target.
+Fraction digits in `format` win over the decimals taken from the target. Compact and scientific notation round their own way (`1.5K`) unless you set `decimals`, and the text of the HTML can already be written that way: the `K` that `Intl` adds is not kept as a suffix.
+
+### From HTML
+
+Since 1.13.0, `data-counter-format` takes the same options as words, so a page without a script of its own can count currencies, percentages, units and compact numbers:
+
+```html
+<span data-counter="1500000" data-counter-format="compact">1.5M</span>
+<span data-counter="0.86" data-counter-format="percent">86%</span>
+<span lang="de" data-counter="1234.50" data-counter-format="currency:EUR">1.234,50 €</span>
+<span data-counter="120" data-counter-format="unit:kilometer-per-hour">120 km/h</span>
+```
+
+| Word                        | Options                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `compact`                   | `notation: 'compact'`                                                                                       |
+| `scientific`, `engineering` | `notation`                                                                                                  |
+| `percent`                   | `style: 'percent'`                                                                                          |
+| `currency:EUR`              | `style: 'currency'` with the ISO 4217 code                                                                  |
+| `unit:kilometer-per-hour`   | `style: 'unit'` with a [unit identifier](https://tc39.es/ecma402/#table-sanctioned-single-unit-identifiers) |
+| `long`                      | `compactDisplay: 'long'`, `unitDisplay: 'long'`, `currencyDisplay: 'name'`                                  |
+| `narrow`                    | `unitDisplay: 'narrow'`, `currencyDisplay: 'narrowSymbol'`                                                  |
+| `sign`                      | `signDisplay: 'exceptZero'`, a `+` on positive values                                                       |
+
+Words combine (`compact currency:USD`), unknown words are ignored, and the attribute wins over the `format` option. `parseFormat(words)` returns the options.
+
+### Formats you name
+
+`defineFormat(name, format)` names `Intl.NumberFormat` options or a function that writes the text, for `data-counter-format` and the `format` option. A function also writes clocks and dates. Define formats before counting starts; with the CDN bundle, call `Counter.defineFormat()` in a script that runs before the DOM is ready, or start with `data-manual` and `Counter.auto()`.
+
+```js
+import { autoCounter, defineFormat } from '@samline/counter'
+
+defineFormat('money', { style: 'currency', currency: 'USD' })
+defineFormat('bytes', value =>
+  value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB` : `${Math.round(value / 1e6)} MB`
+)
+autoCounter()
+```
+
+```html
+<span data-counter="2400000000" data-counter-format="bytes">2.4 GB</span>
+```
+
+A defined name wins over the words, so `defineFormat('compact', …)` changes what `compact` means on your site. The [Named formats example](../examples/#guide-named) counts all of these.
 
 For percentages, write fractions in `data-counter` (`0.25` for 25%); the decimals of the target are reduced by two, so `0.25` shows `25%` and `0.255` shows `25.5%`.
 

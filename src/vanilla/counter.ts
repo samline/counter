@@ -7,7 +7,7 @@ import { scramble } from './scramble.js'
 import { scroll } from './scroll.js'
 import { steady } from './steady.js'
 
-export { animateNumber, getCounter } from './controller.js'
+export { animateNumber, defineFormat, getCounter } from './controller.js'
 
 /**
  * Count numbers as they scroll into view.

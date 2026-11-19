@@ -186,6 +186,34 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('formats named in HTML count in their own notation', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'named'))
+    const numbers = page.locator('.named [data-counter]')
+    const final = ['1.5M', '86%', '1.234,50 €', '120 km/h', '2.4 GB']
+    const flat = (texts: string[]) => texts.map(text => text.replace(/\s/g, ' '))
+    await expect
+      .poll(async () => flat(await numbers.allTextContents()), { timeout: 4000 })
+      .toEqual(final)
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
+    // While counting, every value is written by its format, never with a doubled suffix.
+    const patterns = [
+      /^\d+(\.\d)?[KM]?$/,
+      /^\d+%$/,
+      /^[\d.]+,\d\d €$/,
+      /^\d+ km\/h$/,
+      /^\d+(\.\d)? (B|KB|MB|GB)$/,
+    ]
+    for (let i = 0; i < 8; i++) {
+      flat(await numbers.allTextContents()).forEach((text, n) => expect(text).toMatch(patterns[n]!))
+      await page.waitForTimeout(80)
+    }
+    await expect
+      .poll(async () => flat(await numbers.allTextContents()), { timeout: 4000 })
+      .toEqual(final)
+  })
+
   test('ordinals keep the right suffix on every value', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'ordinal'))
     const ranks = page.locator('.ranks [data-counter]')

@@ -97,6 +97,61 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'named',
+    tab: 'Named formats',
+    title: 'Currencies, compact numbers and your own formats from HTML',
+    description:
+      'data-counter-format takes words for Intl.NumberFormat, so plain HTML can count compact numbers, percentages, currencies and units. A format you name with defineFormat works the same way, here for file sizes.',
+    files: {
+      html: `<dl class="named" lang="en">
+  <div><dt>Downloads</dt><dd><span data-counter="1500000" data-counter-format="compact">1.5M</span></dd></div>
+  <div><dt>Satisfied</dt><dd><span data-counter="0.86" data-counter-format="percent">86%</span></dd></div>
+  <div lang="de"><dt>Umsatz</dt><dd><span data-counter="1234.50" data-counter-format="currency:EUR">1.234,50 €</span></dd></div>
+  <div><dt>Top speed</dt><dd><span data-counter="120" data-counter-format="unit:kilometer-per-hour">120 km/h</span></dd></div>
+  <div><dt>Stored</dt><dd><span data-counter="2400000000" data-counter-format="bytes">2.4 GB</span></dd></div>
+</dl>
+<button type="button" id="again">Count again</button>`,
+      css: `.named { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 1rem; margin: 0 0 1rem; }
+.named dt { font-size: 0.875rem; }
+.named dd { margin: 0; font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }`,
+      js: `const units = ['B', 'KB', 'MB', 'GB', 'TB']
+const bytes = value => {
+  let unit = 0
+  while (value >= 1000 && unit < units.length - 1) {
+    value /= 1000
+    unit++
+  }
+  return \`\${value.toFixed(unit ? 1 : 0)} \${units[unit]}\`
+}
+
+// Name the format before counting starts.
+Counter.defineFormat('bytes', bytes)
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.named [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, defineFormat, getCounter } from '@samline/counter'
+
+const units = ['B', 'KB', 'MB', 'GB', 'TB']
+const bytes = value => {
+  let unit = 0
+  while (value >= 1000 && unit < units.length - 1) {
+    value /= 1000
+    unit++
+  }
+  return \`\${value.toFixed(unit ? 1 : 0)} \${units[unit]}\`
+}
+
+defineFormat('bytes', bytes)
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.named [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'ordinal',
     tab: 'Ordinals',
     title: 'Ordinals that stay right while they count',

@@ -21,6 +21,8 @@ import {
   resolveEasing,
   fractionDigits,
   numberingSystem,
+  parseFormat,
+  type CounterFormat,
   ORDINALS,
   ordinal,
   parseOrdinals,
@@ -195,6 +197,8 @@ export const readFinal = (element: HTMLElement) => {
 }
 
 const numberValue: KindReader = (element, original, options, locale) => {
+  // `prepare` has turned a named format into options or a formatter.
+  const intl = options.format as Intl.NumberFormatOptions | undefined
   // Final value: the attribute, then the option, then the visible text.
   const { raw, number: fromAttribute } = readFinal(element)
   const fromText =
@@ -204,8 +208,7 @@ const numberValue: KindReader = (element, original, options, locale) => {
 
   let inferred = fromAttribute !== null ? fractionDigits(raw) : (fromText?.decimals ?? 0)
   // Percent formatting multiplies by 100: 0.25 is "25%", with no decimals.
-  if (options.format?.style === 'percent' && fromAttribute !== null)
-    inferred = Math.max(0, inferred - 2)
+  if (intl?.style === 'percent' && fromAttribute !== null) inferred = Math.max(0, inferred - 2)
   const decimals = Math.min(
     Math.max(
       0,
@@ -217,7 +220,7 @@ const numberValue: KindReader = (element, original, options, locale) => {
   // The rendered text is the template: its prefix and suffix stay unless a
   // `format` style adds its own symbols, and grouping follows it on 'auto'.
   const shape = options.formatter ? null : readShape(original, locale)
-  const style = options.format?.style
+  const style = intl?.style
   const affixes = shape && (!style || style === 'decimal') ? shape : null
   const grouping = readEnum(
     element,
@@ -238,18 +241,25 @@ const numberValue: KindReader = (element, original, options, locale) => {
   } else {
     // Digits stay in the script the HTML writes them in: `١٬٢٣٤` counts in Arabic-Indic.
     const system = shape && numberingSystem(shape.zero)
+    // Compact and scientific numbers round their own way unless decimals are set.
+    const exact = element.hasAttribute('data-counter-decimals') || options.decimals !== undefined
+    const rounds = !exact && intl?.notation && intl.notation !== 'standard'
     const formatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
+      ...(!rounds && { minimumFractionDigits: decimals, maximumFractionDigits: decimals }),
       ...(system && { numberingSystem: system }),
       ...useGrouping,
-      ...options.format,
+      ...intl,
     })
     // Values rounding to zero on the way up from a negative start would read "-0".
     const negativeZero = formatter.format(-0)
     const zero = formatter.format(0)
-    const prefix = affixes?.prefix ?? ''
+    // What `Intl` writes around the number itself (`K` in `1.5K`) is not part of the template.
+    const written = readShape(formatter.format(to), locale)
+    let prefix = affixes?.prefix ?? ''
     let suffix = affixes?.suffix ?? ''
+    if (written && prefix.endsWith(written.prefix))
+      prefix = prefix.slice(0, prefix.length - written.prefix.length)
+    if (written && suffix.startsWith(written.suffix)) suffix = suffix.slice(written.suffix.length)
     // Ordinals: `21st` counts `1st`, `2nd`, `3rd` instead of `1st`, `2st`.
     const attribute = element.getAttribute('data-counter-ordinal')
     const choice =
@@ -283,12 +293,34 @@ const numberValue: KindReader = (element, original, options, locale) => {
   }
 }
 
+const formats = new Map<string, CounterFormat>()
+
+/**
+ * Name a format for `data-counter-format` and the `format` option:
+ * `Intl.NumberFormat` options, or a function that writes the text (also for
+ * clocks and dates). Define it before counting; a name defined again
+ * replaces the format for elements read from then on.
+ */
+export const defineFormat = (name: string, format: CounterFormat) => void formats.set(name, format)
+
+/** Options with `format` resolved: a defined name, or words for `Intl.NumberFormat`. */
+const resolveFormat = (element: HTMLElement, options: CounterOptions): CounterOptions => {
+  const name =
+    readString(element, 'data-counter-format', '') ||
+    (typeof options.format === 'string' ? options.format : '')
+  if (!name) return options
+  const format = formats.get(name) ?? parseFormat(name)
+  const { format: _, ...rest } = options
+  return typeof format === 'function' ? { ...rest, formatter: format } : { ...rest, format }
+}
+
 const prepare = (
   element: HTMLElement,
   original: string,
-  options: CounterOptions,
+  given: CounterOptions,
   kinds: Partial<Record<CounterKind, KindReader>>
 ): Setup | null => {
+  const options = resolveFormat(element, given)
   const locale = safeLocale(
     readString(element, 'data-counter-locale', '') ||
       options.locale ||

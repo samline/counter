@@ -1,5 +1,5 @@
 import type { AutoInitController } from '../core/counter.js'
-import type { animateNumber, getCounter } from '../vanilla/controller.js'
+import type { animateNumber, defineFormat, getCounter } from '../vanilla/controller.js'
 import type { autoCounter, counter } from '../vanilla/counter.js'
 
 interface Api {
@@ -7,6 +7,7 @@ interface Api {
   autoCounter: typeof autoCounter
   animateNumber: typeof animateNumber
   getCounter: typeof getCounter
+  defineFormat: typeof defineFormat
 }
 
 /**

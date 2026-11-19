@@ -1,6 +1,6 @@
 import { createAutoCounter, createCounter } from '../vanilla/controller.js'
 
-export { animateNumber, getCounter } from '../vanilla/controller.js'
+export { animateNumber, defineFormat, getCounter } from '../vanilla/controller.js'
 export {
   EASINGS,
   cubicBezier,
@@ -11,6 +11,7 @@ export {
   digitValue,
   numberingSystem,
   readShape,
+  parseFormat,
   ORDINALS,
   ordinal,
   ATTRIBUTE,
@@ -23,6 +24,7 @@ export type {
   AnimateNumberOptions,
   NumberAnimation,
   NumberShape,
+  CounterFormat,
   OrdinalSuffixes,
   CounterState,
   CounterStart,

@@ -145,6 +145,7 @@ test('the lite bundle counts numbers and leaves clocks as rendered', async ({ lo
     'autoCounter',
     'controller',
     'counter',
+    'defineFormat',
     'getCounter',
   ])
   await page.evaluate(() =>

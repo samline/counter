@@ -235,6 +235,39 @@ export const ordinal = (locale: string | undefined, suffixes: OrdinalSuffixes) =
     suffixes[rules.select(Math.abs(Math.round(value)))] ?? suffixes.other ?? ''
 }
 
+/**
+ * Read `Intl.NumberFormat` options from words, for HTML:
+ * `'compact'`, `'percent'`, `'scientific'`, `'engineering'`,
+ * `'currency:EUR'`, `'unit:kilometer-per-hour'`, `'long'` and `'narrow'`
+ * (how the currency, unit or compact notation is written) and `'sign'`
+ * (a `+` on positive values). Words combine: `'compact currency:USD'`.
+ * Unknown words are ignored.
+ */
+export const parseFormat = (text: string): Intl.NumberFormatOptions => {
+  const options: Intl.NumberFormatOptions = {}
+  for (const word of text.trim().split(/\s+/)) {
+    const [name, value] = word.split(':')
+    if (name === 'compact') options.notation = 'compact'
+    else if (name === 'scientific' || name === 'engineering') options.notation = name
+    else if (name === 'percent') options.style = 'percent'
+    else if (name === 'currency' && value) Object.assign(options, { style: name, currency: value })
+    else if (name === 'unit' && value) Object.assign(options, { style: name, unit: value })
+    else if (name === 'long')
+      Object.assign(options, {
+        compactDisplay: 'long',
+        unitDisplay: 'long',
+        currencyDisplay: 'name',
+      })
+    else if (name === 'narrow')
+      Object.assign(options, { unitDisplay: 'narrow', currencyDisplay: 'narrowSymbol' })
+    else if (name === 'sign') options.signDisplay = 'exceptZero'
+  }
+  return options
+}
+
+/** A named format: `Intl.NumberFormat` options, or a function that writes the text. */
+export type CounterFormat = Intl.NumberFormatOptions | ((value: number, element: Element) => string)
+
 const systems = new Map<string, string | undefined>()
 
 /**
@@ -455,8 +488,12 @@ export interface CounterOptions {
   scramble?: boolean
   /** BCP 47 locale for formatting. Defaults to the closest `lang` attribute. */
   locale?: string
-  /** Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or `{ notation: 'compact' }`. */
-  format?: Intl.NumberFormatOptions
+  /**
+   * Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or
+   * `{ notation: 'compact' }`. Since 1.13.0 also the name of a format from
+   * `defineFormat()`, or words such as `'compact currency:USD'`.
+   */
+  format?: Intl.NumberFormatOptions | string
   /** Full control over the text. Replaces `locale`, `decimals` and `format`. */
   formatter?: (value: number, element: Element) => string
   /**
