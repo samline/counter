@@ -186,6 +186,32 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('scroll-linked numbers follow the scroll both ways', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'scroll'))
+    const story = page.locator('#story')
+    const water = page.locator('[data-counter="71"]')
+    await expect(water).toHaveAttribute('data-counter-state', 'pending')
+    await expect(water).toHaveText('0')
+
+    // Scroll step by step: the value only grows on the way down.
+    const seen: number[] = []
+    for (let top = 0; top <= 1200; top += 40) {
+      await story.evaluate((box, y) => box.scrollTo(0, y), top)
+      await page.waitForTimeout(60)
+      seen.push(Number(await water.textContent()))
+    }
+    expect(seen.every((value, i) => i === 0 || value >= seen[i - 1]!)).toBe(true)
+    expect(seen.some(value => value > 0 && value < 71)).toBe(true)
+    await expect(water).toHaveText('71')
+    await expect(page.locator('[data-counter="8000000000"]')).toHaveText('8,000,000,000')
+    await expect(page.locator('[data-counter="384400"]')).toHaveText('384,400')
+
+    // Back to the top: every number returns to its start.
+    await story.evaluate(box => box.scrollTo(0, 0))
+    await expect(water).toHaveText('0')
+    await expect(water).toHaveAttribute('data-counter-state', 'pending')
+  })
+
   test('rolling digits keep the line box and end on the rendered text', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'roll'))
     const board = page.locator('.board [data-counter]')

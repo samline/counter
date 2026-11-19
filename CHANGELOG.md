@@ -2,6 +2,18 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `start: 'scroll'` and `data-counter-start="scroll"`: the value follows the scroll position instead of time. A number counts from its start value when its middle enters at the bottom of the viewport (or `root`) to its final value at the middle, and back when scrolling up. Easing, events, `onUpdate`, `cssVars`, `output`, `roll` and live values follow every step. In the lite entry it counts once on visibility.
+- `scrollRange` option and `data-counter-scroll-range` attribute: where a scroll-linked count starts and ends, as shares of the root height (default `[1, 0.5]`).
+- Scroll-linked example: three facts in a scrolling box, with rolling digits and a bar drawn from `--counter-progress`.
+
+### Changed
+
+- Size budgets: 9.5 KB gzip for the main entry and the browser bundle (were 9 KB), 6.5 KB for the lite entry and its bundle (were 6.25 KB).
+
 ## [1.9.0] - 2026-11-18
 
 ### Added

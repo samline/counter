@@ -97,6 +97,38 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'scroll',
+    tab: 'Scroll-linked',
+    title: 'Numbers that follow the scroll',
+    description:
+      'With data-counter-start="scroll" the value follows the scroll position instead of time: it starts when the number enters at the bottom and lands when it reaches the middle, and goes back when you scroll back. It works with rolling digits and with --counter-progress for a bar.',
+    files: {
+      html: `<div id="story" lang="en">
+  <p class="spacer">Scroll down slowly, then back up</p>
+  <p class="fact"><span data-counter="8000000000" data-counter-start="scroll" data-counter-roll>8,000,000,000</span> people</p>
+  <p class="fact"><span data-counter="71" data-counter-start="scroll" data-counter-easing="linear">71</span>% of the surface is water</p>
+  <div class="fact" data-water>
+    <span data-counter="384400" data-counter-start="scroll" data-counter-css-vars="[data-water]">384,400</span> km to the Moon
+    <i class="bar"></i>
+  </div>
+  <p class="spacer">The end</p>
+</div>`,
+      css: `#story { height: 18rem; overflow-y: auto; padding: 0 1rem; border: 1px solid #ccc; }
+.spacer { min-height: 16rem; margin: 0; display: grid; place-items: center; font-size: 0.875rem; }
+.fact { margin: 0 0 8rem; font-size: 1.5rem; }
+.fact span { font-weight: 700; font-variant-numeric: tabular-nums; }
+[data-water] { --counter-progress: 1; }
+.bar { display: block; height: 0.5rem; margin-top: 0.5rem; width: calc(var(--counter-progress) * 100%); border-radius: 1rem; background: #c2410c; }`,
+      js: `// The box scrolls instead of the page, so pass it as the root.
+// Called before the DOM is ready, this replaces the automatic start.
+Counter.auto({ root: document.querySelector('#story') })`,
+      esm: `import { autoCounter } from '@samline/counter'
+
+// The box scrolls instead of the page, so pass it as the root.
+autoCounter({ root: document.querySelector('#story') })`,
+    },
+  },
+  {
     id: 'roll',
     tab: 'Rolling digits',
     title: 'Digits that roll like an odometer',

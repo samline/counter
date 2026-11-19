@@ -332,6 +332,15 @@ export interface Part {
    * Returns `true` when it did; the final value is always plain text.
    */
   write?: (element: HTMLElement, value: number, text: string) => boolean
+  /**
+   * Drive an element with `start: 'scroll'`: call `seek` with progress from
+   * `0` to `1` whenever it changes, and return a function that stops.
+   */
+  follow?: (
+    element: HTMLElement,
+    seek: (progress: number) => void,
+    options: CounterOptions
+  ) => (() => void) | undefined
   /** A new value from `set()`, `increment()`, `decrement()` or a live attribute is shown. */
   changed?: (element: HTMLElement, text: string) => void
   /** The controller is destroyed and the markup restored. */
@@ -360,6 +369,8 @@ interface Entry {
   named: boolean
   /** A new value from `set()` or a live attribute is on its way. */
   news: boolean
+  /** Where the scroll has the count, `0` to `1`, with `start: 'scroll'`. */
+  progress: number | null
 }
 
 /** Which live controller owns an element. */
@@ -432,6 +443,7 @@ export const createCounter =
             !GENERIC.test(element.tagName) ||
             ['role', 'aria-label', 'aria-labelledby'].some(name => element.hasAttribute(name)),
           news: false,
+          progress: null,
         })
     }
     if (entries.size === 0) {
@@ -588,7 +600,18 @@ export const createCounter =
       entry.unwatch()
       entry.unwatch = noop
       const { setup } = entry
-      if (setup.start !== 'visible' || (!setup.repeat && entry.state !== 'pending')) return
+      entry.progress = null
+      if (setup.start === 'scroll')
+        for (const part of parts) {
+          const unfollow = part.follow?.(element, progress => seek(element, progress), current)
+          if (unfollow) return void (entry.unwatch = unfollow)
+        }
+      // Without a part that follows the scroll, `scroll` starts on visibility.
+      if (
+        (setup.start !== 'visible' && setup.start !== 'scroll') ||
+        (!setup.repeat && entry.state !== 'pending')
+      )
+        return
       entry.unwatch = observeVisibility(element, {
         root: current.root ?? null,
         rootMargin: current.rootMargin ?? '0px',
@@ -602,6 +625,35 @@ export const createCounter =
           emit('reset', element)
         },
       })
+    }
+
+    /** Show the value at `progress` of the way, from the scroll position. */
+    const seek = (element: HTMLElement, progress: number) => {
+      const entry = entries.get(element)!
+      if (!active || still(element) || Number.isNaN(progress)) return
+      const share = Math.min(Math.max(progress, 0), 1)
+      entry.progress = share
+      const { setup, state } = entry
+      // A count started by time gives way to the scroll.
+      stop(element)
+      if (share === 1) {
+        if (state !== 'done') complete(element)
+      } else if (share === 0) {
+        if (state !== 'pending') {
+          rewind(element)
+          emit('reset', element)
+        }
+      } else {
+        if (state !== 'counting') {
+          hold(element, setup.from)
+          setState(element, 'counting')
+          current.onStart?.(element)
+          emit('start', element)
+        }
+        show(element, setup.from + (setup.to - setup.from) * resolveEasing(setup.easing)(share))
+        current.onUpdate?.(entry.value, element)
+        emit('update', element)
+      }
     }
 
     /** Put an element in its first state, as on creation. */
@@ -645,8 +697,11 @@ export const createCounter =
         restore: normalize(setup.format(setup.to)) === normalize(entry.text),
       }
       entry.news = true
+      // Numbers on the scroll show the new value at the same place of the scroll.
+      if (entry.progress !== null)
+        entry.progress === 1 ? complete(element) : seek(element, entry.progress)
       // Waiting elements count to the new value when they start.
-      if (entry.state !== 'pending') begin(element, entry.value)
+      else if (entry.state !== 'pending') begin(element, entry.value)
     }
 
     const retarget =

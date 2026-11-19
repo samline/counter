@@ -312,7 +312,7 @@ export const safeLocale = (locale: string | undefined) => {
 /** `pending` (showing `from`), `counting`, `paused` or `done`. */
 export type CounterState = 'pending' | 'counting' | 'paused' | 'done'
 
-export const STARTS = ['visible', 'load', 'manual'] as const
+export const STARTS = ['visible', 'load', 'manual', 'scroll'] as const
 
 export const KINDS = ['number', 'time', 'date'] as const
 
@@ -334,7 +334,9 @@ export type CounterReducedMotion = (typeof REDUCED_MOTIONS)[number]
 
 /**
  * When counting starts: once the element is `visible` (default), on `load`
- * (as soon as it is set up), or `manual` (when you call `start()`).
+ * (as soon as it is set up), `manual` (when you call `start()`), or `scroll`:
+ * the value follows the scroll position instead of time (main entry only;
+ * the lite entry treats it as `visible`).
  */
 export type CounterStart = (typeof STARTS)[number]
 
@@ -434,6 +436,12 @@ export interface CounterOptions {
   reducedMotion?: CounterReducedMotion
   /** Count again every time the element enters. Defaults to `false`. */
   repeat?: boolean
+  /**
+   * With `start: 'scroll'`, where the element's center is, as a share of the
+   * root's height from the top, when the count is at its start and when it is
+   * at its end. Defaults to `[1, 0.5]`: from the bottom edge to the middle.
+   */
+  scrollRange?: [number, number]
   /** When counting starts. Defaults to `'visible'`. */
   start?: CounterStart
   /**

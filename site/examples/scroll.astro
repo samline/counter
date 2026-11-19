@@ -1,0 +1,63 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="box story" data-preview="scroll" lang="en">
+    <p class="spacer">Scroll down slowly, then back up</p>
+    <p class="fact">
+      <span data-counter="8000000000" data-counter-start="scroll" data-counter-roll
+        >8,000,000,000</span
+      >{' '}people
+    </p>
+    <p class="fact">
+      <span data-counter="71" data-counter-start="scroll" data-counter-easing="linear">71</span
+      >% of the surface is water
+    </p>
+    <div class="fact" data-water>
+      <span data-counter="384400" data-counter-start="scroll" data-counter-css-vars="[data-water]"
+        >384,400</span
+      >{' '}km to the Moon
+      <i class="bar"></i>
+    </div>
+    <p class="spacer">The end</p>
+  </div>
+</div>
+
+<style>
+  .story {
+    height: 18rem;
+  }
+  .story .spacer {
+    min-height: 16rem;
+  }
+  .fact {
+    margin: 0 0 8rem;
+    font-size: 1.5rem;
+  }
+  .fact span {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-water] {
+    --counter-progress: 1;
+  }
+  .bar {
+    display: block;
+    width: calc(var(--counter-progress) * 100%);
+    height: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 1rem;
+    background: var(--color-accent);
+  }
+</style>
+
+<script>
+  import { autoCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('scroll', root =>
+    // The box scrolls, not the page.
+    autoCounter({ scope: root, root: root.querySelector<HTMLElement>('.story') })
+  )
+</script>
