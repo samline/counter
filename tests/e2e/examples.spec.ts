@@ -129,12 +129,12 @@ test.describe('counter copyable examples', () => {
     )
 
     await expect(items).toHaveText('1')
-    const add = page.getByRole('button', { name: 'Add one item' })
+    const add = page.getByRole('button', { name: 'Add an item' })
     await add.click()
     await add.click()
     await add.click()
     await expect(items).toHaveText('4')
-    const remove = page.getByRole('button', { name: 'Remove one item' })
+    const remove = page.getByRole('button', { name: 'Remove an item' })
     for (let i = 0; i < 6; i++) await remove.click()
     await expect(items).toHaveText('0')
 

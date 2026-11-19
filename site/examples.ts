@@ -557,8 +557,8 @@ document.querySelector('#again').addEventListener('click', () =>
     <h3>Cart</h3>
     <p class="big"><span id="items" data-counter="1">1</span> items</p>
     <div class="actions">
-      <button type="button" id="remove" aria-label="Remove one item">-</button>
-      <button type="button" id="add" aria-label="Add one item">+</button>
+      <button type="button" id="remove" aria-label="Remove an item">-</button>
+      <button type="button" id="add" aria-label="Add an item">+</button>
     </div>
   </section>
   <section>
