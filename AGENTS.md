@@ -6,6 +6,7 @@ Package memory: decisions and lessons specific to this package. Family rules are
 
 - Extracted from the samline/utils monorepo on 2026-11-14 with its Git history (`git subtree split`).
 - The website is embedded from package-landing-docs (`landing/`, `docs/`, `shared/`, `site-tools/`); `site/` holds this package's previews and copyable examples.
+- Size: `@samline/is-visible` inlines its own `@samline/internal`, so every entry carries the shared helpers twice (about 130 B gzip). The family accepts it (package-landing-docs `family/conventions/package.md`, "Known overlap"). Hand-merging repeated code in the controller does not pay either: gzip already compresses repetition, and the merged helpers measured slightly larger.
 
 <!-- samline:family:start -->
 
