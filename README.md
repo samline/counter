@@ -82,6 +82,10 @@ While a number counts, screen readers get its final value instead of the digits 
 
 `data-counter-start="scroll"` ties the count to the scroll position: the number counts up as it moves from the bottom of the viewport to the middle and back down when you scroll up, with `data-counter-scroll-range` to choose where.
 
+### Scrambled digits
+
+`data-counter-scramble` shows the final text with random digits that settle from left to right, like a code being cracked, for numbers, clocks and dates.
+
 ### A steady layout
 
 `data-counter-steady` gives the digits equal widths and reserves the width of the final text, so the words after a growing number never move. `format(value)` on the controller writes any value the way the counter shows it, for goals and labels next to the number.
@@ -133,24 +137,24 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ## API at a glance
 
-| API                          | Purpose                                                                                                                                                                                |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                                                                           |
-| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                                                                               |
-| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                                                                      |
-| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                                                                            |
-| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                                                                         |
-| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, scroll-range, as, step, live, css-vars, output, speed, steady, roll, label, announce, reduced-motion. |
+| API                          | Purpose                                                                                                                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                                                                                     |
+| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                                                                                         |
+| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                                                                                |
+| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                                                                                      |
+| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                                                                                   |
+| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, scroll-range, as, step, live, css-vars, output, speed, steady, roll, scramble, label, announce, reduced-motion. |
 
 ### Entrypoints
 
-| Entrypoint                      | When to use                                                                                                                            |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `@samline/counter`              | ESM or CommonJS, every function (about 9 KB gzip).                                                                                     |
-| `@samline/counter/lite`         | Plain numbers only (about 6 KB gzip): no clocks or dates, `cssVars`, `output`, `steady`, `roll`, `announce` or scroll-linked counting. |
-| `@samline/counter/vanilla`      | `counter` as the default export.                                                                                                       |
-| `@samline/counter/browser`      | Classic script that defines `window.Counter`.                                                                                          |
-| `@samline/counter/browser/lite` | The lite classic script, also as `window.Counter`; load one of the two.                                                                |
+| Entrypoint                      | When to use                                                                                                                                        |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@samline/counter`              | ESM or CommonJS, every function (about 9 KB gzip).                                                                                                 |
+| `@samline/counter/lite`         | Plain numbers only (about 6 KB gzip): no clocks or dates, `cssVars`, `output`, `steady`, `roll`, `scramble`, `announce` or scroll-linked counting. |
+| `@samline/counter/vanilla`      | `counter` as the default export.                                                                                                                   |
+| `@samline/counter/browser`      | Classic script that defines `window.Counter`.                                                                                                      |
+| `@samline/counter/browser/lite` | The lite classic script, also as `window.Counter`; load one of the two.                                                                            |
 
 ## Documentation
 

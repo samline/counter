@@ -241,6 +241,36 @@ test.describe('counter copyable examples', () => {
     await expect(page.locator('#score')).toHaveText('155', { timeout: 4000 })
   })
 
+  test('scrambled digits keep the shape and width of the final text', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'scramble'))
+    const codes = page.locator('.codes [data-counter]')
+    const final = ['#20481736', '$1,250,000', '02:45:30']
+    await expect(codes).toHaveText(final, { timeout: 4000 })
+    const width = () => codes.nth(1).evaluate(number => number.getBoundingClientRect().width)
+    const settled = await width()
+
+    await page.getByRole('button', { name: 'Decode again' }).click()
+    await expect(codes.first()).toHaveAttribute('data-counter-state', 'counting')
+    // While counting: random digits in the final text's shape, at the same width.
+    const shape = (text: string) => text.replace(/\d/g, '0')
+    // The first frame of a count still shows its start value.
+    const start = ['#0', '$0', '00:00:00']
+    const seen = new Set<string>()
+    for (let i = 0; i < 8; i++) {
+      const texts = await codes.allTextContents()
+      if ((await codes.nth(1).getAttribute('data-counter-state')) === 'counting') {
+        texts.forEach((text, n) => {
+          if (text !== start[n]) expect(shape(text)).toBe(shape(final[n]!))
+        })
+        expect(Math.abs((await width()) - settled)).toBeLessThan(1)
+        seen.add(texts[1]!)
+      }
+      await page.waitForTimeout(80)
+    }
+    expect(seen.size).toBeGreaterThan(1)
+    await expect(codes).toHaveText(final, { timeout: 4000 })
+  })
+
   test('screen readers get the final value and hear new ones', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'accessible'))
     const customers = page.locator('#customers')

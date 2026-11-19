@@ -32,6 +32,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-output`         | selector                              | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
 | `data-counter-steady`         | present, or `false`                   | Tabular digits and the width of the wider of the start and final text reserved, so nothing moves (since 1.6.0)                         |
 | `data-counter-roll`           | present, or `false`                   | Roll each digit like an odometer while counting; numbers only, not in the lite entry (since 1.9.0)                                     |
+| `data-counter-scramble`       | present, or `false`                   | Show random digits in the shape of the final text and settle them from left to right; not in the lite entry (since 1.11.0)             |
 | `data-counter-label`          | present, or `false`                   | Expose the final value to screen readers while the text is not final; on by default (since 1.7.0)                                      |
 | `data-counter-announce`       | present, `false`, or a template       | Announce new values in a polite live region; `{value}` is the final text (since 1.7.0)                                                 |
 | `data-counter-reduced-motion` | `final`, `count`                      | With reduced motion, show the final value (default) or count anyway (since 1.7.0)                                                      |
@@ -64,6 +65,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `output`                       | —                                      | A selector, element or list to write the value to, or `(value, element, progress) => void` |
 | `steady`                       | `false`                                | Tabular digits and a reserved width while counting, so the layout keeps still              |
 | `roll`                         | `false`                                | Each digit rolls like an odometer while counting; numbers only                             |
+| `scramble`                     | `false`                                | Random digits that settle from left to right while counting                                |
 | `label`                        | `true`                                 | The final value as the label of generic elements while the text is not final               |
 | `announce`                     | `false`                                | `true`, or a template such as `'{value} people online'`, to announce new values            |
 | `reducedMotion`                | `'final'`                              | `'count'` counts even with `prefers-reduced-motion: reduce`                                |
@@ -142,6 +144,22 @@ Since 1.9.0, `data-counter-roll` (or `roll: true`) turns each digit into a colum
 ```
 
 The [Rolling digits example](../../guides/examples/#guide-roll) shows money, a percentage, Arabic-Indic digits and a score.
+
+## Scrambled digits
+
+Since 1.11.0, `data-counter-scramble` (or `scramble: true`) shows the final text with random digits while the number counts, and settles them from left to right as the count goes on, like a code being cracked. When the count ends, the original markup is back.
+
+- The prefix, separators, decimals and suffix stay in place, and random digits are drawn in the script of the text, so `١٬٢٥٠` scrambles in Arabic-Indic digits.
+- It works with numbers, clocks and dates. Easing and `speed` set how fast the digits settle; with `start: 'scroll'`, they follow the scroll.
+- While waiting, the number shows its start value. The random digits change every 50 milliseconds, not every frame.
+- The text jumps to the width of the final value when scrambling starts; add `data-counter-steady` to reserve that width from the start.
+- Screen readers get the final value, as with any count. Where `roll` also applies, it wins. It is in the main entry, not in `@samline/counter/lite`.
+
+```html
+<span data-counter="1250000" data-counter-scramble data-counter-steady>$1,250,000</span>
+```
+
+The [Scramble example](../../guides/examples/#guide-scramble) decodes an order number, money and a clock.
 
 ## Units of `from` and `to`
 

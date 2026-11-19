@@ -181,6 +181,37 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'scramble',
+    tab: 'Scramble',
+    title: 'Digits that settle like a code being cracked',
+    description:
+      'data-counter-scramble shows the final text with random digits while it counts, and settles them from left to right. It keeps the prefix, separators and suffix, works with clocks, and ends on the original text. data-counter-steady holds the width, so nothing jumps when the random digits appear.',
+    files: {
+      html: `<dl class="codes" lang="en">
+  <div><dt>Order</dt><dd><span data-counter="20481736" data-counter-grouping="false" data-counter-scramble data-counter-steady>#20481736</span></dd></div>
+  <div><dt>Revenue</dt><dd><span data-counter="1250000" data-counter-scramble data-counter-steady>$1,250,000</span></dd></div>
+  <div><dt>Flight time</dt><dd><time data-counter data-counter-as="time" data-counter-scramble data-counter-steady>02:45:30</time></dd></div>
+</dl>
+<button type="button" id="again">Decode again</button>`,
+      css: `.codes { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin: 0 0 1rem; }
+.codes dt { font-size: 0.875rem; }
+.codes dd { margin: 0; font-size: 2rem; font-weight: 700; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.codes [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.codes [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'steady',
     tab: 'Steady layout',
     title: 'A still layout and digits in any script',

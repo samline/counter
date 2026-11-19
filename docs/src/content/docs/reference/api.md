@@ -174,7 +174,7 @@ Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS cur
 
 ## @samline/counter/lite
 
-Since 1.8.0. The same `counter`, `autoCounter`, `getCounter`, `animateNumber`, `parseNumber`, `EASINGS`, `cubicBezier` and `isEasing`, for plain numbers only. Elements with `data-counter-as="time"` or `"date"` are not counted and keep their text; `cssVars`, `output`, `steady`, `roll` and `announce` (options and attributes) are ignored, and `start: 'scroll'` counts once on visibility. `counter` is also the default export. Both entries share `getCounter` and one owner per element, so an element counted by one is left alone by the other. The browser build is `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`) and defines the same `window.Counter`.
+Since 1.8.0. The same `counter`, `autoCounter`, `getCounter`, `animateNumber`, `parseNumber`, `EASINGS`, `cubicBezier` and `isEasing`, for plain numbers only. Elements with `data-counter-as="time"` or `"date"` are not counted and keep their text; `cssVars`, `output`, `steady`, `roll`, `scramble` and `announce` (options and attributes) are ignored, and `start: 'scroll'` counts once on visibility. `counter` is also the default export. Both entries share `getCounter` and one owner per element, so an element counted by one is left alone by the other. The browser build is `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`) and defines the same `window.Counter`.
 
 ## window.Counter
 

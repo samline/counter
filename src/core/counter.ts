@@ -407,6 +407,13 @@ export interface CounterOptions {
    * the lite entry. Defaults to `false`.
    */
   roll?: boolean
+  /**
+   * Show the final text with random digits while counting, and settle them
+   * from left to right as the count goes on, like a code being cracked.
+   * Works with numbers, clocks and dates; `roll` wins when both apply. Not
+   * in the lite entry. Defaults to `false`.
+   */
+  scramble?: boolean
   /** BCP 47 locale for formatting. Defaults to the closest `lang` attribute. */
   locale?: string
   /** Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or `{ notation: 'compact' }`. */

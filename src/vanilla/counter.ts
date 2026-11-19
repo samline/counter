@@ -3,6 +3,7 @@ import { createAutoCounter, createCounter } from './controller.js'
 import { dateValue, timeValue } from './kinds.js'
 import { outputs } from './outputs.js'
 import { roll } from './roll.js'
+import { scramble } from './scramble.js'
 import { scroll } from './scroll.js'
 import { steady } from './steady.js'
 
@@ -25,6 +26,7 @@ export const counter = createCounter({ time: timeValue, date: dateValue }, [
   outputs,
   steady,
   roll,
+  scramble,
   scroll,
   announce,
 ])

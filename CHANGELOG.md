@@ -2,6 +2,13 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `scramble` option and `data-counter-scramble` attribute: while counting, the element shows the final text with random digits and settles them from left to right, like a code being cracked. Prefixes, separators and suffixes stay, random digits use the script of the text, the digits change every 50 milliseconds, and the count ends on the original markup. Works with numbers, clocks and dates; `roll` wins where both apply. Main entry only.
+- Scramble example: an order number, money and a clock that settle digit by digit, with `steady`.
+
 ## [1.10.0] - 2026-11-18
 
 ### Added
