@@ -21,6 +21,9 @@ import {
   resolveEasing,
   fractionDigits,
   numberingSystem,
+  ORDINALS,
+  ordinal,
+  parseOrdinals,
   REDUCED_MOTIONS,
   parseNumber,
   readShape,
@@ -246,10 +249,29 @@ const numberValue: KindReader = (element, original, options, locale) => {
     const negativeZero = formatter.format(-0)
     const zero = formatter.format(0)
     const prefix = affixes?.prefix ?? ''
-    const suffix = affixes?.suffix ?? ''
+    let suffix = affixes?.suffix ?? ''
+    // Ordinals: `21st` counts `1st`, `2nd`, `3rd` instead of `1st`, `2st`.
+    const attribute = element.getAttribute('data-counter-ordinal')
+    const choice =
+      attribute === null
+        ? options.ordinal
+        : attribute === 'false'
+          ? false
+          : attribute === '' || attribute === 'true' || parseOrdinals(attribute)
+    const language = formatter.resolvedOptions().locale.split('-')[0]!
+    const own = typeof choice === 'object' ? choice : ORDINALS[language]
+    // `true` in a language without suffixes of its own writes English ones, by English rules.
+    const suffixes =
+      decimals > 0 || choice === false ? undefined : (own ?? (choice ? ORDINALS.en : undefined))
+    let after = suffixes && ordinal(own ? locale : 'en', suffixes)
+    const end = after?.(to) ?? ''
+    if (after && suffix.startsWith(end) && !/^\p{L}/u.test(suffix.slice(end.length)))
+      suffix = suffix.slice(end.length)
+    // Recognized by default only when the text already ends that way.
+    else if (choice === undefined) after = undefined
     format = value => {
       const text = formatter.format(value)
-      return prefix + (text === negativeZero ? zero : text) + suffix
+      return prefix + (text === negativeZero ? zero : text) + (after?.(value) ?? '') + suffix
     }
   }
 

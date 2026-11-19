@@ -205,6 +205,36 @@ export const readShape = (text: string, locale?: string): NumberShape | null => 
   }
 }
 
+/** Ordinal suffixes by `Intl.PluralRules` category with `type: 'ordinal'`: `{ one: 'st', two: 'nd', few: 'rd', other: 'th' }`. */
+export type OrdinalSuffixes = Partial<Record<Intl.LDMLPluralRule, string>>
+
+/** Ordinal suffixes of languages that write them right after the digits. */
+export const ORDINALS: Readonly<Record<string, OrdinalSuffixes>> = {
+  en: { one: 'st', two: 'nd', few: 'rd', other: 'th' },
+  fr: { one: 'er', other: 'e' },
+}
+
+/** Read suffixes written as `'one=er other=e'`. */
+export const parseOrdinals = (text: string): OrdinalSuffixes =>
+  Object.fromEntries(
+    text
+      .trim()
+      .split(/\s+/)
+      .map(pair => pair.split('='))
+      .filter(pair => pair.length === 2 && pair[0])
+  ) as OrdinalSuffixes
+
+/**
+ * The ordinal suffix of the whole number nearest to a value, in `locale`:
+ * `ordinal('en', ORDINALS.en)(22)` is `'nd'`. Categories without a suffix
+ * use `other`.
+ */
+export const ordinal = (locale: string | undefined, suffixes: OrdinalSuffixes) => {
+  const rules = new Intl.PluralRules(locale, { type: 'ordinal' })
+  return (value: number) =>
+    suffixes[rules.select(Math.abs(Math.round(value)))] ?? suffixes.other ?? ''
+}
+
 const systems = new Map<string, string | undefined>()
 
 /**
@@ -393,6 +423,15 @@ export interface CounterOptions {
    * locale does (`8,000` in English); `false` never groups.
    */
   grouping?: boolean | 'auto'
+  /**
+   * Ordinal suffixes that follow the value: `21st` counts `1st`, `2nd`,
+   * `3rd`. By default, a suffix of English or French that matches the final
+   * value is recognized. `true` adds the language's suffixes (English when
+   * it has none), an object sets them by `Intl.PluralRules` ordinal category
+   * (`{ one: 'er', other: 'e' }`), and `false` leaves the suffix as written.
+   * Whole numbers only.
+   */
+  ordinal?: boolean | OrdinalSuffixes
   /**
    * Keep the layout still while counting: digits get equal widths
    * (`tabular-nums`) and the element reserves the width of the wider of its

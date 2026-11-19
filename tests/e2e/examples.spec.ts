@@ -186,6 +186,28 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('ordinals keep the right suffix on every value', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'ordinal'))
+    const ranks = page.locator('.ranks [data-counter]')
+    const final = ['21st', '103rd', '2e', '5.ª']
+    await expect(ranks).toHaveText(final, { timeout: 4000 })
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    const english = (n: number) =>
+      n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')
+    const seen = new Set<string>()
+    for (let i = 0; i < 12; i++) {
+      for (const text of (await ranks.allTextContents()).slice(0, 2)) {
+        const [, digits, suffix] = /^(\d+)(\D*)$/.exec(text.trim())!
+        expect(suffix).toBe(english(Number(digits)))
+        seen.add(text)
+      }
+      await page.waitForTimeout(60)
+    }
+    expect(seen.size).toBeGreaterThan(4)
+    await expect(ranks).toHaveText(final, { timeout: 4000 })
+  })
+
   test('scroll-linked numbers follow the scroll both ways', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'scroll'))
     const story = page.locator('#story')

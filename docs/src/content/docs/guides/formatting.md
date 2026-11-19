@@ -79,6 +79,32 @@ Text outside the element works too, and keeps the counted element short:
 +<span data-counter="42">42</span>% <span data-counter="4.9">4.9</span> / 5
 ```
 
+## Ordinals
+
+Since 1.12.0, an ordinal suffix follows the value: `21st` counts `1st`, `2nd`, `3rd`, `4th` … `21st`, instead of `2st` and `3st`. A suffix of English (`st`, `nd`, `rd`, `th`) or French (`er`, `e`) right after the digits is recognized when it matches the final value, so plain HTML needs nothing else.
+
+```html
+<span data-counter data-counter-from="340">21st</span> of 340 teams
+<!-- 340th … 23rd, 22nd, 21st -->
+<span lang="fr" data-counter>2e</span> édition
+<!-- 0e, 1er, 2e -->
+```
+
+For other languages, give the suffixes by [`Intl.PluralRules` ordinal category](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/PluralRules#type) (`zero`, `one`, `two`, `few`, `many`, `other`) in `data-counter-ordinal` or the `ordinal` option. A category without a suffix uses `other`.
+
+```html
+<span lang="it" data-counter="3" data-counter-ordinal="other=º">3º</span>
+```
+
+```js
+counter('.rank', { ordinal: { one: 'er', other: 'e' } })
+```
+
+- `data-counter-ordinal` (or `ordinal: true`) adds the language's suffixes to a number written without them, and English suffixes in a language without its own.
+- `data-counter-ordinal="false"` (or `ordinal: false`) keeps the suffix as written.
+- Ordinals are whole numbers: with decimals, the suffix stays as written.
+- `ordinal(locale, suffixes)` returns the suffix of any value, and `ORDINALS` holds the English and French suffixes.
+
 ## Clocks and dates
 
 Since 1.2.0, `data-counter-as` tells counter what the number means, and the HTML stays the source of truth.

@@ -2,6 +2,18 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- Ordinals: an English (`st`, `nd`, `rd`, `th`) or French (`er`, `e`) suffix right after the digits that matches the final value now follows every value, so `21st` counts `1st`, `2nd`, `3rd` instead of `2st` and `3st`. `ordinal` option and `data-counter-ordinal` attribute: `true` adds the language's suffixes, an object (`{ one: 'er', other: 'e' }`) or `one=er other=e` sets them by `Intl.PluralRules` ordinal category, and `false` keeps the suffix as written. Also in the lite entry.
+- `ordinal(locale, suffixes)`, `ORDINALS` and the `OrdinalSuffixes` type.
+- Ordinals example: a rank, a release, a French edition and a Spanish season.
+
+### Changed
+
+- Size budgets: 10 KB gzip for the main entry and the browser bundle (were 9.5 KB), 7 KB for the lite entry and its bundle (were 6.5 KB).
+
 ## [1.11.0] - 2026-11-19
 
 ### Added

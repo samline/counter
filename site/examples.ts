@@ -97,6 +97,37 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'ordinal',
+    tab: 'Ordinals',
+    title: 'Ordinals that stay right while they count',
+    description:
+      'A suffix of English or French that matches the final value is recognized, so the rank climbs from 340th to 21st through 22nd and 23rd, never 22st, and 2e counts from 1er. Other languages set their suffixes with data-counter-ordinal, by plural category.',
+    files: {
+      html: `<ul class="ranks">
+  <li lang="en">Ranked <span data-counter data-counter-from="340">21st</span> of 340 teams</li>
+  <li lang="en">Our <span data-counter data-counter-from="1">103rd</span> release</li>
+  <li lang="fr"><span data-counter data-counter-from="1">2e</span> édition</li>
+  <li lang="es"><span data-counter="5" data-counter-from="1" data-counter-ordinal="other=.ª">5.ª</span> temporada</li>
+</ul>
+<button type="button" id="again">Count again</button>`,
+      css: `.ranks { display: grid; gap: 0.5rem; margin: 0 0 1rem; padding: 0; list-style: none; font-size: 1.5rem; }
+.ranks span { font-weight: 700; font-variant-numeric: tabular-nums; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.ranks [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.ranks [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'scroll',
     tab: 'Scroll-linked',
     title: 'Numbers that follow the scroll',

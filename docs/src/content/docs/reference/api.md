@@ -160,6 +160,8 @@ Reads a number written for people in `locale`: `parseNumber('1.234,5 €', 'de')
 
 `digitValue(char)` returns the value of one digit in any script (`'٧'` and `'७'` are `7`), or `-1`. `numberingSystem(zero)` returns the `Intl` numbering system whose zero is `zero` (`'٠'` is `'arab'`), or `undefined` when the browser cannot tell.
 
+Since 1.12.0, `ordinal(locale, suffixes)` returns a function that gives the ordinal suffix of the whole number nearest to a value: `ordinal('en', ORDINALS.en)(22)` is `'nd'`. `ORDINALS` holds the suffixes `counter` recognizes (`en` and `fr`), typed as `OrdinalSuffixes`: suffixes by `Intl.PluralRules` ordinal category.
+
 ## EASINGS
 
 ```js
