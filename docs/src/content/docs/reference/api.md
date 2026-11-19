@@ -172,6 +172,10 @@ Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS cur
 
 `Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix, grouping and, since 1.6.0, the `zero` of the digits of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. Since 1.7.0, `REDUCED_MOTIONS` lists the values of `reducedMotion`, typed as `CounterReducedMotion`. `@samline/counter/vanilla` exports `counter` as its default export.
 
+## @samline/counter/lite
+
+Since 1.8.0. The same `counter`, `autoCounter`, `getCounter`, `animateNumber`, `parseNumber`, `EASINGS`, `cubicBezier` and `isEasing`, for plain numbers only. Elements with `data-counter-as="time"` or `"date"` are not counted and keep their text; `cssVars`, `output`, `steady` and `announce` (options and attributes) are ignored. `counter` is also the default export. Both entries share `getCounter` and one owner per element, so an element counted by one is left alone by the other. The browser build is `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`) and defines the same `window.Counter`.
+
 ## window.Counter
 
 The browser bundle (`dist/browser/counter.global.js`) defines `window.Counter` and counts every `[data-counter]` as soon as the DOM is ready.

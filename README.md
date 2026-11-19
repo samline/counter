@@ -58,7 +58,7 @@ For Shopify, WordPress or plain HTML pages without a build step, load the browse
 ></script>
 ```
 
-The bundle defines `window.Counter`. Add `data-manual` to the script tag and call `Counter.auto(options)` to start it with your own options.
+The bundle defines `window.Counter`. Add `data-manual` to the script tag and call `Counter.auto(options)` to start it with your own options. For stats bands and other plain numbers, `counter-lite.global.js` is about a quarter smaller.
 
 ## Capabilities
 
@@ -136,11 +136,13 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ### Entrypoints
 
-| Entrypoint                 | When to use                                   |
-| -------------------------- | --------------------------------------------- |
-| `@samline/counter`         | ESM or CommonJS, every function.              |
-| `@samline/counter/vanilla` | `counter` as the default export.              |
-| `@samline/counter/browser` | Classic script that defines `window.Counter`. |
+| Entrypoint                      | When to use                                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `@samline/counter`              | ESM or CommonJS, every function (about 8 KB gzip).                                                     |
+| `@samline/counter/lite`         | Plain numbers only (about 6 KB gzip): no clocks or dates, `cssVars`, `output`, `steady` or `announce`. |
+| `@samline/counter/vanilla`      | `counter` as the default export.                                                                       |
+| `@samline/counter/browser`      | Classic script that defines `window.Counter`.                                                          |
+| `@samline/counter/browser/lite` | The lite classic script, also as `window.Counter`; load one of the two.                                |
 
 ## Documentation
 

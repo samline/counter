@@ -2,6 +2,17 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `@samline/counter/lite` entry and `dist/browser/counter-lite.global.js` (`@samline/counter/browser/lite`): the same API for plain numbers, about 6 KB gzip instead of 8 KB. It leaves out clocks and dates (`as: 'time'` and `'date'` elements stay as rendered), `cssVars`, `output`, `steady` and `announce`. Both entries share `getCounter` and the owner of each element.
+
+### Changed
+
+- Clocks and dates, outputs, `steady` and announcements are separate modules inside the package, so an entry includes only what it uses. The main entry and its behavior are unchanged.
+- Size budgets: 6.25 KB gzip for the lite entry and bundle; 8 KB for the main ones.
+
 ## [1.7.0] - 2026-11-18
 
 ### Added

@@ -9,6 +9,7 @@ export default defineConfig([
     entry: {
       index: 'src/index.ts',
       'vanilla/index': 'src/vanilla/index.ts',
+      'lite/index': 'src/lite/index.ts',
     },
     format: ['esm', 'cjs'],
     dts: { resolve: noExternal },
@@ -19,7 +20,10 @@ export default defineConfig([
     noExternal,
   },
   {
-    entry: { 'browser/counter': 'src/browser/global.ts' },
+    entry: {
+      'browser/counter': 'src/browser/global.ts',
+      'browser/counter-lite': 'src/browser/lite.ts',
+    },
     format: ['iife'],
     minify: true,
     sourcemap: true,

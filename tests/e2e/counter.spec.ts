@@ -121,3 +121,34 @@ test('the controller starts, pauses, resumes and emits DOM events', async ({ loa
     'complete',
   ])
 })
+
+test('the lite bundle counts numbers and leaves clocks as rendered', async ({ load, page }) => {
+  await load(
+    `<p lang="en">
+      <span id="n" data-counter="1250" data-counter-duration="400">1,250</span>
+      <time id="clock" data-counter data-counter-as="time">01:30</time>
+      <span id="vars" data-counter="5" data-counter-css-vars data-counter-steady>5</span>
+    </p>`,
+    'counter-lite'
+  )
+  await expect(page.locator('#n')).toHaveText('1,250')
+  await expect(page.locator('#n')).toHaveAttribute('data-counter-state', 'done')
+  await expect(page.locator('#clock')).toHaveText('01:30')
+  await expect(page.locator('#clock')).not.toHaveAttribute('data-counter-state')
+  await expect(page.locator('#vars')).toHaveAttribute('data-counter-state', 'done')
+  // No CSS variables or reserved width in the lite bundle.
+  await expect(page.locator('#vars')).not.toHaveAttribute('style')
+  const members = await page.evaluate(() => Object.keys((window as any).Counter).sort())
+  expect(members).toEqual([
+    'animateNumber',
+    'auto',
+    'autoCounter',
+    'controller',
+    'counter',
+    'getCounter',
+  ])
+  await page.evaluate(() =>
+    (window as any).Counter.getCounter(document.getElementById('n')).set(2000)
+  )
+  await expect(page.locator('#n')).toHaveText('2,000')
+})

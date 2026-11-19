@@ -34,7 +34,7 @@ const sections = {
     description:
       'Add data-counter to a number and it counts up when it scrolls into view, formatted for the language of the page.',
     descriptionContinuation: 'Install it, watch the live preview, then read the full reference.',
-    footnotes: ['About 3 KB gzip', 'Zero dependencies', `${project.license} licensed`],
+    footnotes: ['From 6 KB gzip', 'Zero dependencies', `${project.license} licensed`],
     compatibilityLabel: 'ONE SMALL SCRIPT. RIGHT AT HOME IN YOUR STACK.',
     platforms: ['JavaScript', 'TypeScript', 'React', 'Vue', 'Svelte', 'Shopify', 'WordPress'],
   },
