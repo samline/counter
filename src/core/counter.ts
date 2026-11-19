@@ -160,6 +160,19 @@ export const parseNumber = (
   return Number.isFinite(value) ? { value, decimals: fractionDigits(normalized) } : null
 }
 
+/**
+ * The integer whose digits `text` writes, as a `BigInt`, in any script:
+ * `'18,446,744,073,709,551,615'` is `18446744073709551615n`. `null` without digits.
+ */
+export const readBigInt = (text: string, negative = false): bigint | null => {
+  let digits = ''
+  for (const char of text) {
+    const digit = digitValue(char)
+    if (digit >= 0) digits += digit
+  }
+  return digits ? BigInt(negative ? `-${digits}` : digits) : null
+}
+
 /** The text around the number in a rendered value, and how its digits are written. */
 export interface NumberShape {
   /** Text before the number, without its sign: `'$'` in `'$8,000'`. */

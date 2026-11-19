@@ -97,6 +97,37 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'big',
+    tab: 'Big integers',
+    title: 'Integers past 2^53 that end on every digit',
+    description:
+      'JavaScript numbers keep 15 to 17 digits, so a number like 18,446,744,073,709,551,615 would end as ...552,000. Final values past 2^53, from the attribute or the text, are kept as BigInt and written with Intl.NumberFormat, so the count ends on the exact digits, in any script.',
+    files: {
+      html: `<dl class="big" lang="en">
+  <div><dt>The largest 64-bit number</dt><dd><span data-counter>18,446,744,073,709,551,615</span></dd></div>
+  <div><dt>12.5 ether in wei</dt><dd><span data-counter="12500000000000000000" data-counter-grouping="true">12500000000000000000</span></dd></div>
+  <div lang="hi"><dt>सबसे बड़ी 64-बिट संख्या</dt><dd><span data-counter>१,८४,४६,७४,४०,७३,७०,९५,५१,६१५</span></dd></div>
+</dl>
+<button type="button" id="again">Count again</button>`,
+      css: `.big { display: grid; gap: 1rem; margin: 0 0 1rem; }
+.big dt { font-size: 0.875rem; }
+.big dd { margin: 0; font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.big [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.big [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'named',
     tab: 'Named formats',
     title: 'Currencies, compact numbers and your own formats from HTML',

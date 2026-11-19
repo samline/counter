@@ -104,6 +104,17 @@ Without JavaScript the visitor sees the raw `8000`. If that matters, format the 
 
 `data-counter-grouping="false"` does the opposite, for years, IDs or codes that must never get separators: `2,026` would be wrong for a year.
 
+### Integers past 2^53
+
+JavaScript numbers keep 15 to 17 significant digits, so `18446744073709551615` would read as `18,446,744,073,709,552,000`. Since 1.14.0, a whole final value past `Number.MAX_SAFE_INTEGER` in `data-counter` or in the text is also kept as a `BigInt` and written with `Intl.NumberFormat`, so the count ends on every digit, in any language and script. Values in between show the digits of the number on screen, never a run of zeros.
+
+```html
+<span data-counter="12500000000000000000" data-counter-grouping="true">12500000000000000000</span>
+<!-- … 12,500,000,000,000,000,000 -->
+```
+
+Events, `onUpdate`, `getSnapshot()` and outputs still report numbers, which are exact only up to 2^53, and `set()` takes a number. The [Big integers example](../examples/#guide-big) counts to 2^64 − 1 in English and Hindi.
+
 ## Prefixes, suffixes and grouping
 
 The text of the element is the template: what comes before and after the number stays while it counts, and digits written without a group separator stay that way. `format` keeps the prefix and suffix unless its style is `currency`, `percent` or `unit`; `formatter` replaces the whole text.

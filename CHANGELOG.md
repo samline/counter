@@ -2,6 +2,16 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Integers past 2^53 end on every digit: a whole final value past `Number.MAX_SAFE_INTEGER` in `data-counter` or in the text is kept as a `BigInt` and written with `Intl.NumberFormat`, so `18446744073709551615` no longer ends as `18,446,744,073,709,552,000`. Values past 2^53 in between show their own digits instead of 17 digits and zeros. Also in the lite entry.
+
+### Added
+
+- Big integers example: 2^64 − 1 in English and Hindi, and wei from a raw attribute.
+
 ## [1.13.0] - 2026-11-19
 
 ### Added

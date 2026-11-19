@@ -1,0 +1,80 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="big-example" data-preview="big" lang="en">
+    <dl class="big">
+      <div>
+        <dt>The largest 64-bit number</dt>
+        <dd><span data-counter>18,446,744,073,709,551,615</span></dd>
+      </div>
+      <div>
+        <dt>12.5 ether in wei</dt>
+        <dd>
+          <span data-counter="12500000000000000000" data-counter-grouping="true"
+            >12500000000000000000</span
+          >
+        </dd>
+      </div>
+      <div lang="hi">
+        <dt>सबसे बड़ी 64-बिट संख्या</dt>
+        <dd><span data-counter>१,८४,४६,७४,४०,७३,७०,९५,५१,६१५</span></dd>
+      </div>
+    </dl>
+    <p class="actions">
+      <button type="button" class="action" data-again>Count again</button>
+    </p>
+  </div>
+</div>
+
+<style>
+  .big-example {
+    display: grid;
+    gap: 1rem;
+  }
+  .big {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+  }
+  dt {
+    font-size: 0.875rem;
+    color: var(--color-text-subtle);
+  }
+  dd {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .actions {
+    margin: 0;
+  }
+  .action {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { autoCounter, getCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('big', root => {
+    const controller = autoCounter({ scope: root })
+    root
+      .querySelector('[data-again]')!
+      .addEventListener('click', () =>
+        root.querySelectorAll('.big [data-counter]').forEach(number => getCounter(number)?.start())
+      )
+    return controller
+  })
+</script>

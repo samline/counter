@@ -21,6 +21,7 @@ import {
   resolveEasing,
   fractionDigits,
   numberingSystem,
+  readBigInt,
   parseFormat,
   type CounterFormat,
   ORDINALS,
@@ -205,6 +206,16 @@ const numberValue: KindReader = (element, original, options, locale) => {
     fromAttribute === null && options.to === undefined ? parseNumber(original, locale) : null
   const to = fromAttribute ?? options.to ?? fromText?.value
   if (to === undefined) return null
+  // Integers past 2^53 lose digits as numbers: keep the final value exact as a BigInt.
+  const written =
+    fromAttribute !== null
+      ? /^[-+]?\d+$/.test(raw)
+        ? raw
+        : ''
+      : fromText?.decimals === 0
+        ? original
+        : ''
+  const big = Number.isSafeInteger(to) || !written ? null : readBigInt(written, to < 0)
 
   let inferred = fromAttribute !== null ? fractionDigits(raw) : (fromText?.decimals ?? 0)
   // Percent formatting multiplies by 100: 0.25 is "25%", with no decimals.
@@ -280,7 +291,14 @@ const numberValue: KindReader = (element, original, options, locale) => {
     // Recognized by default only when the text already ends that way.
     else if (choice === undefined) after = undefined
     format = value => {
-      const text = formatter.format(value)
+      const text = formatter.format(
+        big !== null && value === to
+          ? big
+          : // Past 2^53, show every digit of the value, not 17 and rounded zeros.
+            Math.abs(value) > Number.MAX_SAFE_INTEGER && Number.isFinite(value)
+            ? BigInt(Math.round(value))
+            : value
+      )
       return prefix + (text === negativeZero ? zero : text) + (after?.(value) ?? '') + suffix
     }
   }

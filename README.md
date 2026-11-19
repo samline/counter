@@ -72,7 +72,7 @@ While a number counts, screen readers get its final value instead of the digits 
 
 ### Formatted for the language
 
-`Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. `data-counter-format="currency:EUR"` (or `compact`, `percent`, `unit:kilometer`) formats from plain HTML, and `defineFormat` names your own formats. Ordinals keep the right suffix while they count: `21st` goes `1st`, `2nd`, `3rd`, never `2st`. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text, also in Arabic-Indic, Devanagari and other digits, which keep counting in their own script.
+`Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. `data-counter-format="currency:EUR"` (or `compact`, `percent`, `unit:kilometer`) formats from plain HTML, and `defineFormat` names your own formats. Integers past 2^53 end on every digit. Ordinals keep the right suffix while they count: `21st` goes `1st`, `2nd`, `3rd`, never `2st`. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text, also in Arabic-Indic, Devanagari and other digits, which keep counting in their own script.
 
 ### Rolling digits
 

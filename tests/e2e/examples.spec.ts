@@ -186,6 +186,26 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('big integers end on every digit', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'big'))
+    const numbers = page.locator('.big [data-counter]')
+    const final = [
+      '18,446,744,073,709,551,615',
+      '12,500,000,000,000,000,000',
+      '१,८४,४६,७४,४०,७३,७०,९५,५१,६१५',
+    ]
+    await expect(numbers).toHaveText(final, { timeout: 4000 })
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
+    await page.waitForTimeout(600)
+    // In between, large values show their own digits, not 17 digits and zeros.
+    const middle = await numbers.first().textContent()
+    expect(middle).toMatch(/^[\d,]+$/)
+    if (middle!.replace(/,/g, '').length > 17) expect(middle).not.toMatch(/000$/)
+    await expect(numbers).toHaveText(final, { timeout: 4000 })
+  })
+
   test('formats named in HTML count in their own notation', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'named'))
     const numbers = page.locator('.named [data-counter]')
