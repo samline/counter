@@ -1,6 +1,6 @@
 {
   "name": "@samline/counter",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "description": "Count numbers up (or down) as they scroll into view, with easing, decimals and Intl formatting, for vanilla JavaScript, any framework and plain HTML. The final value stays in the HTML.",
   "keywords": [
     "counter",
