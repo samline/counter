@@ -1,14 +1,14 @@
 ---
 name: counter
 description: Use @samline/counter to animate numbers counting up or down as they scroll into view, with easing, decimals and Intl formatting, in vanilla JS, any framework or plain HTML, while keeping the real value in the HTML.
-package-version: '1.12.0'
+package-version: '1.13.0'
 ---
 
 # @samline/counter
 
-Build against the installed version; this skill describes 1.12.0.
+Build against the installed version; this skill describes 1.13.0.
 
-- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.12.0/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
+- **Install:** `npm install @samline/counter`. Plain HTML: load `https://cdn.jsdelivr.net/npm/@samline/counter@1.13.0/dist/browser/counter.global.js`; it counts every `[data-counter]` on its own (`data-manual` on the script tag, then `Counter.auto(options)`, to pass options). No stylesheet.
 - **Markup first:** render the final value and put the plain number in the attribute: `<span data-counter="12480">12,480</span>`. Empty `data-counter` reads the text in the element's `lang`. Also `data-counter-from` (higher counts down), `-duration`, `-delay` (ms), `-easing` (`linear`, `ease-in`, `ease-out`, `ease-in-out`, `ease-out-expo`, `ease-out-back`, or `cubic-bezier(x1, y1, x2, y2)` 1.5.0+), `-speed` (units per second instead of duration; 1.5.0+), `-decimals`, `-locale`, `-repeat`, `-start` (`visible`, `load`, `manual`; 1.1.0+), `-grouping` (`auto`, `true`, `false`; 1.1.0+), `-as` (`number`, `time`, `date`; 1.2.0+), `-step`, `-date-style` (1.2.0+), `-live` (1.3.0+, on by default), `-css-vars` (present or a closest-ancestor selector) and `-output` (selector; 1.4.0+), `-steady` (1.6.0+), `-roll` (odometer columns; 1.9.0+), `-scramble` (1.11.0+), `-scroll-range` (with `-start="scroll"`; 1.10.0+), `-label` (`false` to opt out), `-announce` (present or a `{value}` template) and `-reduced-motion` (`final`, `count`) (1.7.0+). `data-counter-stagger="150"` on a container staggers its numbers (1.5.0+). Attributes win over options.
 - **Script:** `autoCounter(options)` for a whole page (also picks up elements added later; returns `{ refresh, destroy }`), or `const c = counter(target, { from, to, duration, speed, delay, stagger, easing, decimals, locale, format, formatter, repeat, start, grouping, as, step, dateFormat, live, cssVars, output, steady, roll, label, announce, reducedMotion, root, rootMargin, threshold, onStart, onUpdate, onComplete })`.
 - **Outputs (1.4.0+):** `data-counter-output="#bar"` writes the value to `<progress>`, `<meter>` or inputs (`value`), other elements get `aria-valuenow`; `output` may be a function `(value, element, progress) => {}`. `data-counter-css-vars` (or `cssVars: true | '.card'`) sets `--counter-value` and `--counter-progress` (0–1) on the element or its closest match. Give the CSS a no-JS default (`--counter-value: 86`) and keep final values in `<progress value>`. `destroy()` removes the variables and restores outputs.
