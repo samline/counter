@@ -2,6 +2,17 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `roll` option and `data-counter-roll` attribute: each digit is a column that rolls like an odometer while the number counts. A column turns `value / 10^place` times, so every column shows the real digit of its place; columns that turn more than once a frame show whole digits. Prefixes, separators, decimals, suffixes and other scripts' digits stay in place, digits run left to right in right-to-left text, and the count ends on the original markup. Text whose digits do not follow the value (clocks, dates, compact notation, negative numbers) counts as text. Main entry only.
+- Rolling digits example: money, a percentage, Arabic-Indic digits and a score with `steady`.
+
+### Changed
+
+- Size budgets: 9 KB gzip for the main entry and the browser bundle (were 8 KB). The lite entry is unchanged.
+
 ## [1.8.0] - 2026-11-18
 
 ### Added

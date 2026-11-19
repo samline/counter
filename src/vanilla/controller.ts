@@ -327,6 +327,11 @@ export interface Part {
   paint?: (element: HTMLElement, value: number, progress: number) => void
   /** Before counting (or waiting) from `from`, with a function that writes any value. */
   ready?: (element: HTMLElement, from: number, to: number, text: (value: number) => string) => void
+  /**
+   * Show a value while counting or waiting, instead of the plain text.
+   * Returns `true` when it did; the final value is always plain text.
+   */
+  write?: (element: HTMLElement, value: number, text: string) => boolean
   /** A new value from `set()`, `increment()`, `decrement()` or a live attribute is shown. */
   changed?: (element: HTMLElement, text: string) => void
   /** The controller is destroyed and the markup restored. */
@@ -503,10 +508,12 @@ export const createCounter =
       )
     }
 
-    const show = (element: HTMLElement, value: number) => {
+    const show = (element: HTMLElement, value: number, final = false) => {
       const entry = entries.get(element)!
       paint(element, snap(entry.setup, value))
-      element.textContent = entry.setup.format(entry.value)
+      const text = entry.setup.format(entry.value)
+      if (final || !parts.some(part => part.write?.(element, entry.value, text)))
+        element.textContent = text
     }
 
     const stop = (element: HTMLElement) => {
@@ -520,7 +527,7 @@ export const createCounter =
       if (entry.setup.restore) {
         paint(element, entry.setup.to)
         element.replaceChildren(...entry.nodes)
-      } else show(element, entry.setup.to)
+      } else show(element, entry.setup.to, true)
     }
 
     const complete = (element: HTMLElement) => {

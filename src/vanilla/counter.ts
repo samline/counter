@@ -2,6 +2,7 @@ import { announce } from './announce.js'
 import { createAutoCounter, createCounter } from './controller.js'
 import { dateValue, timeValue } from './kinds.js'
 import { outputs } from './outputs.js'
+import { roll } from './roll.js'
 import { steady } from './steady.js'
 
 export { animateNumber, getCounter } from './controller.js'
@@ -22,6 +23,7 @@ export { animateNumber, getCounter } from './controller.js'
 export const counter = createCounter({ time: timeValue, date: dateValue }, [
   outputs,
   steady,
+  roll,
   announce,
 ])
 

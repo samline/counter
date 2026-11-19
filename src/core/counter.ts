@@ -397,6 +397,14 @@ export interface CounterOptions {
    * start and final text, so nothing around it moves. Defaults to `false`.
    */
   steady?: boolean
+  /**
+   * Roll each digit like an odometer while counting, instead of rewriting
+   * the text. The last digit spins fastest and every column shows the real
+   * digit of its place. Numbers only; text whose digits do not follow the
+   * value (clocks, dates, `'8K'`, negative numbers) counts as text. Not in
+   * the lite entry. Defaults to `false`.
+   */
+  roll?: boolean
   /** BCP 47 locale for formatting. Defaults to the closest `lang` attribute. */
   locale?: string
   /** Extra `Intl.NumberFormat` options, for example `{ style: 'percent' }` or `{ notation: 'compact' }`. */

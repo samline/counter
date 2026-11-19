@@ -30,6 +30,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `data-counter-css-vars`       | present, `false`, or a selector    | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0)                                              |
 | `data-counter-output`         | selector                           | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
 | `data-counter-steady`         | present, or `false`                | Tabular digits and the width of the wider of the start and final text reserved, so nothing moves (since 1.6.0)                         |
+| `data-counter-roll`           | present, or `false`                | Roll each digit like an odometer while counting; numbers only, not in the lite entry (since 1.9.0)                                     |
 | `data-counter-label`          | present, or `false`                | Expose the final value to screen readers while the text is not final; on by default (since 1.7.0)                                      |
 | `data-counter-announce`       | present, `false`, or a template    | Announce new values in a polite live region; `{value}` is the final text (since 1.7.0)                                                 |
 | `data-counter-reduced-motion` | `final`, `count`                   | With reduced motion, show the final value (default) or count anyway (since 1.7.0)                                                      |
@@ -60,6 +61,7 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `cssVars`                      | `false`                                | `true`, or a selector for the closest ancestor, such as `'.card'`                          |
 | `output`                       | —                                      | A selector, element or list to write the value to, or `(value, element, progress) => void` |
 | `steady`                       | `false`                                | Tabular digits and a reserved width while counting, so the layout keeps still              |
+| `roll`                         | `false`                                | Each digit rolls like an odometer while counting; numbers only                             |
 | `label`                        | `true`                                 | The final value as the label of generic elements while the text is not final               |
 | `announce`                     | `false`                                | `true`, or a template such as `'{value} people online'`, to announce new values            |
 | `reducedMotion`                | `'final'`                              | `'count'` counts even with `prefers-reduced-motion: reduce`                                |
@@ -107,6 +109,21 @@ Since 1.6.0:
 ```
 
 The [Steady layout example](../../guides/examples/#guide-steady) shows the difference side by side.
+
+## Rolling digits
+
+Since 1.9.0, `data-counter-roll` (or `roll: true`) turns each digit into a column that rolls while the number counts, like an odometer. A column turns `value / 10^place` times, so the last digit spins fastest and every column always shows the real digit of its place; a column that turns more than once a frame shows whole digits. The prefix, separators, decimals and suffix stay in place, Arabic-Indic and other digits roll in their own script, and the digits always run left to right, also in a right-to-left paragraph.
+
+- Leading places appear as the number grows; with `data-counter-steady` they keep their width from the start.
+- It needs text whose digits are exactly the value (`1,250`, `$12.50`, `99.95%`). Clocks, dates, compact notation (`8K`) and negative numbers count as text.
+- The count ends on the original markup, and the columns are hidden from screen readers, which get the final value.
+- It uses inline styles, so there is no stylesheet. It is in the main entry, not in `@samline/counter/lite`.
+
+```html
+<span data-counter="1250000" data-counter-roll>$1,250,000</span>
+```
+
+The [Rolling digits example](../../guides/examples/#guide-roll) shows money, a percentage, Arabic-Indic digits and a score.
 
 ## Units of `from` and `to`
 

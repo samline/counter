@@ -97,6 +97,58 @@ document.querySelector('#again').addEventListener('click', () =>
     },
   },
   {
+    id: 'roll',
+    tab: 'Rolling digits',
+    title: 'Digits that roll like an odometer',
+    description:
+      'data-counter-roll turns each digit into a column that rolls to the value: the last digit spins fastest, and every column shows the real digit of its place. Prefixes, separators, decimals and Arabic-Indic digits stay in place, and the count ends on the original text. Here the score also keeps its width with data-counter-steady.',
+    files: {
+      html: `<div class="roll" lang="en">
+  <dl class="board">
+    <div><dt>Revenue</dt><dd><span data-counter="1250000" data-counter-roll>$1,250,000</span></dd></div>
+    <div><dt>Uptime</dt><dd><span data-counter="99.95" data-counter-roll>99.95%</span></dd></div>
+    <div lang="ar" dir="rtl"><dt>الزوار</dt><dd><span data-counter data-counter-roll>١٬٢٣٤</span></dd></div>
+  </dl>
+  <p class="score">
+    <span id="score" data-counter="120" data-counter-roll data-counter-steady data-counter-duration="800">120</span> points
+  </p>
+  <p class="actions">
+    <button type="button" id="add">Add 75</button>
+    <button type="button" id="take">Take 40</button>
+  </p>
+</div>
+<button type="button" id="again">Count again</button>`,
+      css: `.roll { display: grid; gap: 1rem; }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1rem; margin: 0; }
+.board dt { font-size: 0.875rem; }
+.board dd { margin: 0; font-size: 2rem; font-weight: 700; }
+.score { margin: 0; font-size: 1.5rem; }
+.score span { font-weight: 700; }
+.actions { display: flex; gap: 0.5rem; margin: 0; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+const score = Counter.getCounter(document.querySelector('#score'))
+document.querySelector('#add').addEventListener('click', () => score.increment(75))
+document.querySelector('#take').addEventListener('click', () => score.decrement(40))
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.board [data-counter]').forEach(number => Counter.getCounter(number)?.start())
+)`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+const score = getCounter(document.querySelector('#score'))
+document.querySelector('#add').addEventListener('click', () => score.increment(75))
+document.querySelector('#take').addEventListener('click', () => score.decrement(40))
+
+document.querySelector('#again').addEventListener('click', () =>
+  document.querySelectorAll('.board [data-counter]').forEach(number => getCounter(number)?.start())
+)`,
+    },
+  },
+  {
     id: 'steady',
     tab: 'Steady layout',
     title: 'A still layout and digits in any script',

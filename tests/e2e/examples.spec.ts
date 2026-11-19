@@ -186,6 +186,35 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('rolling digits keep the line box and end on the rendered text', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'roll'))
+    const board = page.locator('.board [data-counter]')
+    const final = ['$1,250,000', '99.95%', '١٬٢٣٤']
+    await expect(board).toHaveText(final, { timeout: 4000 })
+    const height = await page
+      .locator('.board dd')
+      .first()
+      .evaluate(dd => dd.clientHeight)
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(board.first()).toHaveAttribute('data-counter-state', 'counting')
+    // While counting: columns that roll, the digits left to right, and the same line height.
+    expect(await board.first().locator('[dir="ltr"] > span').count()).toBe(9)
+    expect(
+      await page
+        .locator('.board dd')
+        .first()
+        .evaluate(dd => dd.clientHeight)
+    ).toBe(height)
+    await expect(board.first()).toHaveAttribute('aria-label', '$1,250,000')
+    await expect(board).toHaveText(final, { timeout: 4000 })
+    await expect(board.first().locator('[aria-hidden]')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Add 75' }).click()
+    await page.getByRole('button', { name: 'Take 40' }).click()
+    await expect(page.locator('#score')).toHaveText('155', { timeout: 4000 })
+  })
+
   test('screen readers get the final value and hear new ones', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'accessible'))
     const customers = page.locator('#customers')

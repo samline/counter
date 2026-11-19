@@ -74,6 +74,10 @@ While a number counts, screen readers get its final value instead of the digits 
 
 `Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text, also in Arabic-Indic, Devanagari and other digits, which keep counting in their own script.
 
+### Rolling digits
+
+`data-counter-roll` turns each digit into a column that rolls like an odometer: the last digit spins fastest, every column shows the real digit of its place, and the count still ends on your original markup.
+
 ### A steady layout
 
 `data-counter-steady` gives the digits equal widths and reserves the width of the final text, so the words after a growing number never move. `format(value)` on the controller writes any value the way the counter shows it, for goals and labels next to the number.
@@ -125,24 +129,24 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ## API at a glance
 
-| API                          | Purpose                                                                                                                                                            |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                                                       |
-| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                                                           |
-| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                                                  |
-| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                                                        |
-| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                                                     |
-| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed, steady, label, announce, reduced-motion. |
+| API                          | Purpose                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                                                             |
+| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                                                                 |
+| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                                                        |
+| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                                                              |
+| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                                                           |
+| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed, steady, roll, label, announce, reduced-motion. |
 
 ### Entrypoints
 
-| Entrypoint                      | When to use                                                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `@samline/counter`              | ESM or CommonJS, every function (about 8 KB gzip).                                                     |
-| `@samline/counter/lite`         | Plain numbers only (about 6 KB gzip): no clocks or dates, `cssVars`, `output`, `steady` or `announce`. |
-| `@samline/counter/vanilla`      | `counter` as the default export.                                                                       |
-| `@samline/counter/browser`      | Classic script that defines `window.Counter`.                                                          |
-| `@samline/counter/browser/lite` | The lite classic script, also as `window.Counter`; load one of the two.                                |
+| Entrypoint                      | When to use                                                                                                    |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `@samline/counter`              | ESM or CommonJS, every function (about 9 KB gzip).                                                             |
+| `@samline/counter/lite`         | Plain numbers only (about 6 KB gzip): no clocks or dates, `cssVars`, `output`, `steady`, `roll` or `announce`. |
+| `@samline/counter/vanilla`      | `counter` as the default export.                                                                               |
+| `@samline/counter/browser`      | Classic script that defines `window.Counter`.                                                                  |
+| `@samline/counter/browser/lite` | The lite classic script, also as `window.Counter`; load one of the two.                                        |
 
 ## Documentation
 
