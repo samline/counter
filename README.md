@@ -53,7 +53,7 @@ For Shopify, WordPress or plain HTML pages without a build step, load the browse
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/@samline/counter@1.11.0/dist/browser/counter.global.js"
+  src="https://cdn.jsdelivr.net/npm/@samline/counter@1.12.0/dist/browser/counter.global.js"
   defer
 ></script>
 ```
