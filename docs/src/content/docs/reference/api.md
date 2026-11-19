@@ -62,7 +62,7 @@ Listeners receive `{ element, value, state }`, where `value` is the number on sc
 
 ### Live numbers
 
-Since 1.3.0, a number can change after it counts. `set()`, `increment()` and `decrement()` count from the value on screen to the new one, with the element's `duration` and `easing` and no `delay`; each new value is a new `start`, and its `complete` follows. A number still waiting to start counts to the new value when it starts. With reduced motion the new value shows at once.
+Since 1.3.0, a number can change after it counts. `set()`, `increment()` and `decrement()` count from the value on screen to the new one, with the element's `duration` and `easing` and no `delay`; each new value is a new `start`, and its `complete` follows. A number still waiting to start counts to the new value when it starts. With reduced motion the new value shows at once. Since 1.7.0, `announce` reads each new value in a polite live region once it is shown; see [Accessibility](../../guides/accessibility/#announcing-new-values).
 
 ```js
 const price = counter('#price')
@@ -170,7 +170,7 @@ import { EASINGS } from '@samline/counter'
 
 Since 1.5.0, `cubicBezier('cubic-bezier(0.2, 0.8, 0.2, 1)')` returns the CSS curve as a function (or `null` when the string is not a valid curve), and `isEasing(value)` tells whether a value is an easing name, a valid `cubic-bezier()` or a function.
 
-`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix, grouping and, since 1.6.0, the `zero` of the digits of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. `@samline/counter/vanilla` exports `counter` as its default export.
+`Easing`, `EasingName`, `CounterState`, `CounterStart`, `CounterOptions`, `AutoCounterOptions`, `AnimateNumberOptions`, `CounterController`, `CounterEvent`, `CounterEventDetail`, `CounterListener`, `CounterSnapshot` and `NumberShape` are exported as types. `readShape(text, locale?)` reports the prefix, suffix, grouping and, since 1.6.0, the `zero` of the digits of a rendered number, which `counter` uses as the template. Since 1.2.0, `readClock(text)` reads a clock (`'23:59:59'` → 86399 seconds, with its pattern), `writeClock(seconds, fields, padded, digits)` writes one, and `readDate(value)` reads an ISO date or timestamp; `CounterKind`, `ClockShape` and `NumberAnimation` are exported as types. Since 1.7.0, `REDUCED_MOTIONS` lists the values of `reducedMotion`, typed as `CounterReducedMotion`. `@samline/counter/vanilla` exports `counter` as its default export.
 
 ## window.Counter
 

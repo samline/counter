@@ -186,6 +186,30 @@ test.describe('counter copyable examples', () => {
     expect(fill).toBeCloseTo(1, 2)
   })
 
+  test('screen readers get the final value and hear new ones', async ({ page }) => {
+    await openDocument(page, find(counterExamples, 'accessible'))
+    const customers = page.locator('#customers')
+    await expect(customers).toHaveText('12,480', { timeout: 4000 })
+    await expect(customers).not.toHaveAttribute('role')
+    await expect(page.locator('#hears')).toHaveText('12,480')
+
+    await page.getByRole('button', { name: 'Count again' }).click()
+    await expect(customers).toHaveAttribute('data-counter-state', 'counting')
+    // The accessible name is the final value while the digits move.
+    await expect(customers).toHaveAttribute('role', 'img')
+    await expect(page.getByRole('img', { name: '12,480' })).toBeVisible()
+    await expect(page.locator('#hears')).toHaveText('12,480')
+    await expect(customers).not.toHaveAttribute('role', { timeout: 4000 })
+
+    await page.getByRole('button', { name: 'Someone joins' }).click()
+    await expect(page.locator('[data-counter-announcer]')).toHaveText('39 people online')
+    await expect(page.locator('#said')).toHaveText('39 people online')
+    await page.getByRole('button', { name: 'Someone leaves' }).click()
+    await page.getByRole('button', { name: 'Someone leaves' }).click()
+    await expect(page.locator('#online')).toHaveText('37')
+    await expect(page.locator('#said')).toHaveText('37 people online')
+  })
+
   test('steady numbers keep the line still and count in their own digits', async ({ page }) => {
     await openDocument(page, find(counterExamples, 'steady'))
     const numbers = page.locator('.steady [data-counter]')

@@ -2,6 +2,20 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [semver](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `label` option and `data-counter-label` attribute, on by default: while the text is not final (waiting, counting or paused), generic elements are exposed as an image labelled with the final value, so screen readers never read a number in between. Elements with a role or label of their own are left alone.
+- `announce` option and `data-counter-announce` attribute: new values from `set()`, `increment()`, `decrement()` or a live attribute are read in a shared polite live region once they are shown, as is or through a `{value}` template.
+- `reducedMotion` option and `data-counter-reduced-motion` attribute: `'count'` keeps counting with `prefers-reduced-motion: reduce`. `REDUCED_MOTIONS` and the `CounterReducedMotion` type.
+- Screen readers example: the label while counting and visible announcements from two buttons.
+
+### Changed
+
+- Waiting and counting numbers carry `role="img"` and `aria-label` until they are done; pass `label: false` for the previous behavior.
+- Size budgets: 8 KB gzip for the main entry and the browser bundle (were 7.25 KB).
+
 ## [1.6.0] - 2026-11-18
 
 ### Added

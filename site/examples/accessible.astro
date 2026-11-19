@@ -1,0 +1,98 @@
+---
+import './_shared.css'
+---
+
+<div class="preview counter-example">
+  <div class="a11y-example" data-preview="accessible" lang="en">
+    <p class="stat"><span data-customers data-counter="12480">12,480</span> customers</p>
+    <p class="hears">A screen reader reads the number as: <q data-hears></q></p>
+    <p class="stat">
+      <span
+        data-online
+        data-counter="38"
+        data-counter-duration="600"
+        data-counter-announce="{value} people online">38</span
+      >{' '}people online
+    </p>
+    <p class="actions">
+      <button type="button" class="action" data-join>Someone joins</button>
+      <button type="button" class="action" data-leave>Someone leaves</button>
+    </p>
+    <p class="hears">Last announcement: <q data-said></q></p>
+    <button type="button" class="action again" data-again>Count again</button>
+  </div>
+</div>
+
+<style>
+  .a11y-example {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+  p {
+    margin: 0;
+  }
+  .stat {
+    font-size: 1.5rem;
+  }
+  .stat span {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .hears {
+    font-size: 0.875rem;
+    color: var(--color-text-subtle);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .action {
+    padding: 0.375rem 0.875rem;
+    border: 0.0625rem solid var(--color-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  import { autoCounter, getCounter } from '@samline/counter'
+  import { preview } from '../../shared/lib/preview'
+
+  preview('accessible', root => {
+    const controller = autoCounter({ scope: root })
+    const customers = root.querySelector<HTMLElement>('[data-customers]')!
+    const online = getCounter(root.querySelector('[data-online]'))
+
+    const hears = root.querySelector('[data-hears]')!
+    const showHeard = () =>
+      (hears.textContent = customers.getAttribute('aria-label') ?? customers.textContent)
+    const heard = new MutationObserver(showHeard)
+    heard.observe(customers, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    })
+    showHeard()
+
+    const said = root.querySelector('[data-said]')!
+    const region = new MutationObserver(() => {
+      const text = document.querySelector('[data-counter-announcer]')?.textContent
+      if (text && text !== said.textContent) said.textContent = text
+    })
+    region.observe(document.body, { childList: true, characterData: true, subtree: true })
+
+    root.querySelector('[data-join]')!.addEventListener('click', () => online?.increment())
+    root.querySelector('[data-leave]')!.addEventListener('click', () => online?.decrement())
+    root
+      .querySelector('[data-again]')!
+      .addEventListener('click', () => getCounter(customers)?.start())
+
+    return [controller, () => heard.disconnect(), () => region.disconnect()]
+  })
+</script>

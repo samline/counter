@@ -13,28 +13,31 @@ sidebar:
 
 Attributes win over options, so one call can set defaults and each number can override them.
 
-| Attribute                 | Value                              | Description                                                                                                                            |
-| ------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `data-counter`            | number, or empty                   | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text.                                              |
-| `data-counter-from`       | number                             | Start value. Higher than the target counts down.                                                                                       |
-| `data-counter-duration`   | milliseconds                       | How long counting takes                                                                                                                |
-| `data-counter-delay`      | milliseconds                       | Wait before counting                                                                                                                   |
-| `data-counter-speed`      | units per second                   | Count at a steady rate instead of a fixed duration (since 1.5.0)                                                                       |
-| `data-counter-stagger`    | milliseconds, on a container       | Each next `[data-counter]` inside starts this much later (since 1.5.0)                                                                 |
-| `data-counter-easing`     | an easing name or `cubic-bezier()` | Curve of the count: `linear`, `ease-in`, `ease-out`, `ease-in-out`, `ease-out-expo`, `ease-out-back` or `cubic-bezier(x1, y1, x2, y2)` |
-| `data-counter-decimals`   | number                             | Decimals to show                                                                                                                       |
-| `data-counter-locale`     | BCP 47 tag                         | Language for formatting and for reading the text                                                                                       |
-| `data-counter-repeat`     | present, or `false`                | Reset on leaving, count again on every entry                                                                                           |
-| `data-counter-start`      | `visible`, `load`, `manual`        | When counting starts (since 1.1.0)                                                                                                     |
-| `data-counter-live`       | present, or `false`                | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)                                               |
-| `data-counter-css-vars`   | present, `false`, or a selector    | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0)                                              |
-| `data-counter-output`     | selector                           | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
-| `data-counter-steady`     | present, or `false`                | Tabular digits and the width of the wider of the start and final text reserved, so nothing moves (since 1.6.0)                         |
-| `data-counter-grouping`   | `auto`, `true`, `false`            | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)                                                |
-| `data-counter-as`         | `number`, `time`, `date`           | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)                                               |
-| `data-counter-step`       | number                             | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)                                                      |
-| `data-counter-date-style` | `full`, `long`, `medium`, `short`  | Date format with `as="date"`; default `long` (since 1.2.0)                                                                             |
-| `datetime`                | ISO date                           | Final date with `as="date"`; `data-counter-from` takes an ISO date too                                                                 |
+| Attribute                     | Value                              | Description                                                                                                                            |
+| ----------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-counter`                | number, or empty                   | The final value as a plain number (`12480`, `99.95`, `-3`). Empty reads it from the text.                                              |
+| `data-counter-from`           | number                             | Start value. Higher than the target counts down.                                                                                       |
+| `data-counter-duration`       | milliseconds                       | How long counting takes                                                                                                                |
+| `data-counter-delay`          | milliseconds                       | Wait before counting                                                                                                                   |
+| `data-counter-speed`          | units per second                   | Count at a steady rate instead of a fixed duration (since 1.5.0)                                                                       |
+| `data-counter-stagger`        | milliseconds, on a container       | Each next `[data-counter]` inside starts this much later (since 1.5.0)                                                                 |
+| `data-counter-easing`         | an easing name or `cubic-bezier()` | Curve of the count: `linear`, `ease-in`, `ease-out`, `ease-in-out`, `ease-out-expo`, `ease-out-back` or `cubic-bezier(x1, y1, x2, y2)` |
+| `data-counter-decimals`       | number                             | Decimals to show                                                                                                                       |
+| `data-counter-locale`         | BCP 47 tag                         | Language for formatting and for reading the text                                                                                       |
+| `data-counter-repeat`         | present, or `false`                | Reset on leaving, count again on every entry                                                                                           |
+| `data-counter-start`          | `visible`, `load`, `manual`        | When counting starts (since 1.1.0)                                                                                                     |
+| `data-counter-live`           | present, or `false`                | Count to a new `data-counter` or `datetime` when it changes; on by default (since 1.3.0)                                               |
+| `data-counter-css-vars`       | present, `false`, or a selector    | Set `--counter-value` and `--counter-progress` on the number or its closest match (1.4.0)                                              |
+| `data-counter-output`         | selector                           | Write the value to a `<progress>`, `<meter>`, input or `aria-valuenow` (since 1.4.0)                                                   |
+| `data-counter-steady`         | present, or `false`                | Tabular digits and the width of the wider of the start and final text reserved, so nothing moves (since 1.6.0)                         |
+| `data-counter-label`          | present, or `false`                | Expose the final value to screen readers while the text is not final; on by default (since 1.7.0)                                      |
+| `data-counter-announce`       | present, `false`, or a template    | Announce new values in a polite live region; `{value}` is the final text (since 1.7.0)                                                 |
+| `data-counter-reduced-motion` | `final`, `count`                   | With reduced motion, show the final value (default) or count anyway (since 1.7.0)                                                      |
+| `data-counter-grouping`       | `auto`, `true`, `false`            | Group separators: as the HTML writes them, as the language does, or never (since 1.1.0)                                                |
+| `data-counter-as`             | `number`, `time`, `date`           | What the number means: a number, seconds shown as a clock, or days between dates (1.2.0)                                               |
+| `data-counter-step`           | number                             | Show whole steps only: units, seconds with `time`, days with `date` (since 1.2.0)                                                      |
+| `data-counter-date-style`     | `full`, `long`, `medium`, `short`  | Date format with `as="date"`; default `long` (since 1.2.0)                                                                             |
+| `datetime`                    | ISO date                           | Final date with `as="date"`; `data-counter-from` takes an ISO date too                                                                 |
 
 ## Options
 
@@ -57,6 +60,9 @@ Attributes win over options, so one call can set defaults and each number can ov
 | `cssVars`                      | `false`                                | `true`, or a selector for the closest ancestor, such as `'.card'`                          |
 | `output`                       | —                                      | A selector, element or list to write the value to, or `(value, element, progress) => void` |
 | `steady`                       | `false`                                | Tabular digits and a reserved width while counting, so the layout keeps still              |
+| `label`                        | `true`                                 | The final value as the label of generic elements while the text is not final               |
+| `announce`                     | `false`                                | `true`, or a template such as `'{value} people online'`, to announce new values            |
+| `reducedMotion`                | `'final'`                              | `'count'` counts even with `prefers-reduced-motion: reduce`                                |
 | `grouping`                     | `'auto'`                               | `'auto'` copies the HTML, `true` groups as the language does, `false` never groups         |
 | `as`                           | `'number'`                             | `'time'` (seconds as a clock) or `'date'` (days between two dates)                         |
 | `step`                         | none; `1` with `time` and `date`       | Whole steps only, in the unit of the value; the final value is always exact                |

@@ -66,6 +66,10 @@ The bundle defines `window.Counter`. Add `data-manual` to the script tag and cal
 
 You render `12,480`; the script shows the start value and counts back to it when the number is half visible. Search engines, link previews, screen readers and visitors without JavaScript always get the real number. With reduced motion, it never changes.
 
+### Accessible while it moves
+
+While a number counts, screen readers get its final value instead of the digits in between. `data-counter-announce="{value} people online"` reads new values in a polite live region, and `data-counter-reduced-motion="count"` keeps counting for numbers whose change is the content.
+
 ### Formatted for the language
 
 `Intl.NumberFormat` in the closest `lang`: `12.345,5` in German, `12,34,567` in India. Add currencies, compact notation or units with `format`, or return your own text with `formatter`. The rendered text is the template: `$8,000` keeps its `$` while counting, `8000` stays `8000`, and `data-counter-grouping="true"` turns a raw `8000` from your backend into `8,000`. Decimals follow the target, and empty `data-counter` reads the value back from localized text, also in Arabic-Indic, Devanagari and other digits, which keep counting in their own script.
@@ -121,14 +125,14 @@ document.querySelector('#add').addEventListener('click', () => items.increment()
 
 ## API at a glance
 
-| API                          | Purpose                                                                                                                           |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                      |
-| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                          |
-| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                 |
-| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                       |
-| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                    |
-| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed, steady. |
+| API                          | Purpose                                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `autoCounter(options?)`      | Count every `[data-counter]`, including numbers added later.                                                                                                       |
+| `counter(target?, options?)` | Count a selector, element or list. Returns a controller.                                                                                                           |
+| `animateNumber(options)`     | Eased, time-based tween of any number. Returns a cancel function.                                                                                                  |
+| `parseNumber(text, locale?)` | Read a localized number back into a value and its decimals.                                                                                                        |
+| `getCounter(element)`        | The controller counting an element, or `null`.                                                                                                                     |
+| `data-counter-*` attributes  | Start value, duration, delay, easing, decimals, grouping, locale, repeat, start, as, step, live, css-vars, output, speed, steady, label, announce, reduced-motion. |
 
 ### Entrypoints
 

@@ -21,6 +21,7 @@ import {
   resolveEasing,
   fractionDigits,
   numberingSystem,
+  REDUCED_MOTIONS,
   parseNumber,
   readShape,
   readClock,
@@ -33,6 +34,7 @@ import {
   DATE_STYLES,
   DAY,
   type CounterStart,
+  type CounterReducedMotion,
   type CounterOutput,
   type CounterState,
   type CounterEvent,
@@ -148,6 +150,9 @@ export const animateNumber = (options: AnimateNumberOptions): NumberAnimation =>
 const GROUPINGS = ['auto', 'true', 'false'] as const
 
 /** Compare texts regardless of the kind of spaces (French groups with a narrow no-break space). */
+/** Elements without a role of their own, which `label` may turn into a labelled image. */
+const GENERIC = /^(SPAN|DIV|B|STRONG|EM|I|SMALL|MARK|SUB|SUP|DATA|TIME)$/
+
 /** Inline styles `steady` sets. */
 const STEADY = ['font-variant-numeric', 'display', 'min-inline-size']
 
@@ -179,6 +184,12 @@ interface Setup {
   restore: boolean
   /** Hold the width and use tabular digits while counting. */
   steady: boolean
+  /** Give assistive technology the final value while the text counts. */
+  label: boolean
+  /** Announce new values: `false`, or a template where `{value}` is the final text. */
+  announce: string | false
+  /** `'count'` counts even with reduced motion. */
+  motion: CounterReducedMotion
 }
 
 type Value = Pick<Setup, 'from' | 'to' | 'format' | 'step'>
@@ -359,11 +370,59 @@ const prepare = (element: HTMLElement, original: string, options: CounterOptions
     repeat: readBoolean(element, 'data-counter-repeat', options.repeat ?? false),
     live: readBoolean(element, 'data-counter-live', options.live ?? true),
     steady: readBoolean(element, 'data-counter-steady', options.steady ?? false),
+    label: readBoolean(element, 'data-counter-label', options.label ?? true),
+    announce: readAnnounce(element, options),
+    motion: readEnum(
+      element,
+      'data-counter-reduced-motion',
+      REDUCED_MOTIONS,
+      options.reducedMotion ?? 'final'
+    ),
     ...outputsOf(element, options),
     start: readEnum(element, 'data-counter-start', STARTS, options.start ?? 'visible'),
     // End on the original markup when it reads exactly like the final value.
     restore: normalize(value.format(value.to)) === normalize(original),
   }
+}
+
+const readAnnounce = (element: HTMLElement, options: CounterOptions): string | false => {
+  const attribute = element.getAttribute('data-counter-announce')
+  const value = attribute === null ? (options.announce ?? false) : attribute.trim() || true
+  return value === true || value === 'true' ? '{value}' : value === 'false' ? false : value
+}
+
+/* Announcements: one polite live region per document, while a controller uses it. */
+let region: HTMLElement | null = null
+let speakers = 0
+let pending: ReturnType<typeof setTimeout> | undefined
+
+const listen = () => {
+  speakers++
+  if (region) return
+  region = document.createElement('div')
+  region.setAttribute('aria-live', 'polite')
+  region.setAttribute('aria-atomic', 'true')
+  region.setAttribute('data-counter-announcer', '')
+  region.style.cssText =
+    'position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap'
+  document.body.append(region)
+}
+
+const unlisten = () => {
+  if (--speakers > 0) return
+  clearTimeout(pending)
+  region?.remove()
+  region = null
+}
+
+const say = (text: string) => {
+  if (!region) return
+  // The page may have replaced the body since.
+  if (!region.isConnected) document.body.append(region)
+  // Empty first, so the same text twice is announced twice.
+  region.textContent = ''
+  clearTimeout(pending)
+  pending = setTimeout(() => region && (region.textContent = text), 100)
 }
 
 /** Run a selector without letting an invalid one throw. */
@@ -431,6 +490,10 @@ interface Entry {
   unwatch: () => void
   /** Extra delay before the first count, from `stagger`. */
   offset: number
+  /** The element has a role or label of its own (a cell, a heading, `aria-label`): leave it alone. */
+  named: boolean
+  /** A new value from `set()` or a live attribute is on its way: announce it when done. */
+  news: boolean
 }
 
 /** Which live controller owns an element. */
@@ -504,6 +567,10 @@ export const counter = (
         state: 'done',
         unwatch: noop,
         offset: 0,
+        named:
+          !GENERIC.test(element.tagName) ||
+          ['role', 'aria-label', 'aria-labelledby'].some(name => element.hasAttribute(name)),
+        news: false,
       })
   }
   if (entries.size === 0) return inert()
@@ -522,6 +589,15 @@ export const counter = (
   const listeners = new Map<CounterEvent, Set<CounterListener>>()
   let active = true
 
+  // Hold the shared live region while any number of this controller may announce.
+  let speaking = false
+  const speak = () => {
+    if (speaking) return
+    speaking = true
+    listen()
+  }
+  if ([...entries.values()].some(entry => entry.setup.announce)) speak()
+
   const emit = (event: CounterEvent, element: HTMLElement) => {
     const entry = entries.get(element)!
     const detail = { element, value: entry.value, state: entry.state }
@@ -530,10 +606,35 @@ export const counter = (
       element.dispatchEvent(new CustomEvent(EVENT_PREFIX + event, { bubbles: true, detail }))
   }
 
+  /** The final value as text: what the number reads when it is done. */
+  const finalText = ({ setup, text }: Entry) =>
+    normalize(setup.restore ? text : setup.format(setup.to))
+
+  /**
+   * While the text is not final, expose the final value instead: the element
+   * becomes an image labelled with it, so the digits in between are not read.
+   */
+  const describe = (element: HTMLElement) => {
+    const entry = entries.get(element)!
+    if (entry.named) return
+    if (entry.setup.label && entry.state !== 'done') {
+      element.setAttribute('role', 'img')
+      element.setAttribute('aria-label', finalText(entry))
+    } else {
+      element.removeAttribute('role')
+      element.removeAttribute('aria-label')
+    }
+  }
+
   const setState = (element: HTMLElement, state: CounterState) => {
     entries.get(element)!.state = state
     element.setAttribute(STATE_ATTRIBUTE, state)
+    describe(element)
   }
+
+  /** Reduced motion applies to this element: it jumps to its final value. */
+  const still = (element: HTMLElement) =>
+    entries.get(element)!.setup.motion === 'final' && prefersReducedMotion()
 
   // What outputs held before, and where CSS variables were set, to restore on destroy.
   const originals = new Map<Element, { value: string; aria: string | null }>()
@@ -626,9 +727,13 @@ export const counter = (
   }
 
   const complete = (element: HTMLElement) => {
+    const entry = entries.get(element)!
     stop(element)
     showFinal(element)
     setState(element, 'done')
+    if (entry.news && entry.setup.announce)
+      say(entry.setup.announce.split('{value}').join(finalText(entry)))
+    entry.news = false
     current.onComplete?.(element)
     emit('complete', element)
   }
@@ -636,7 +741,7 @@ export const counter = (
   const begin = (element: HTMLElement, from?: number) => {
     const { setup } = entries.get(element)!
     stop(element)
-    if (prefersReducedMotion()) return complete(element)
+    if (still(element)) return complete(element)
     const start = from ?? setup.from
     hold(element, start)
     show(element, start)
@@ -689,7 +794,7 @@ export const counter = (
       inOut: setup.repeat,
       visible: () => begin(element),
       notVisible: () => {
-        if (prefersReducedMotion()) return
+        if (still(element)) return
         rewind(element)
         emit('reset', element)
       },
@@ -698,7 +803,7 @@ export const counter = (
 
   /** Put an element in its first state, as on creation. */
   const arm = (element: HTMLElement) => {
-    if (prefersReducedMotion()) {
+    if (still(element)) {
       // Keep the text as rendered; nothing moves.
       stop(element)
       element.replaceChildren(...entries.get(element)!.nodes)
@@ -733,6 +838,8 @@ export const counter = (
   const glide = (element: HTMLElement, setup: Setup) => {
     const entry = entries.get(element)!
     entry.setup = { ...setup, restore: normalize(setup.format(setup.to)) === normalize(entry.text) }
+    entry.news = true
+    if (setup.announce) speak()
     // Waiting elements count to the new value when they start.
     if (entry.state !== 'pending') begin(element, entry.value)
   }
@@ -774,6 +881,7 @@ export const counter = (
       if (state === 'counting' || state === 'paused') begin(element)
       else if (state === 'done') showFinal(element)
       else show(element, entry.setup.from)
+      describe(element)
       watch(element)
     })
   }
@@ -790,7 +898,12 @@ export const counter = (
       element.removeAttribute(STATE_ATTRIBUTE)
       owners.delete(element)
       release(element)
+      if (!entry.named) {
+        element.removeAttribute('role')
+        element.removeAttribute('aria-label')
+      }
     })
+    if (speaking) unlisten()
     listeners.clear()
     styled.forEach(target => {
       target.style.removeProperty('--counter-value')
@@ -876,7 +989,7 @@ export const counter = (
   const stopMotion = onReducedMotionChange(isReduced => {
     if (!isReduced) return
     entries.forEach((entry, element) => {
-      if (entry.state !== 'done') complete(element)
+      if (entry.state !== 'done' && still(element)) complete(element)
     })
   })
 

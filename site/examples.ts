@@ -398,6 +398,79 @@ setInterval(() => {
     },
   },
   {
+    id: 'accessible',
+    tab: 'Screen readers',
+    title: 'The final value for screen readers, and announced changes',
+    description:
+      'While a number counts, screen readers get its final value instead of the digits in between, and plain text again once it is done. data-counter-announce reads new values in a polite live region, here with a template. data-counter-reduced-motion="count" keeps counting when visitors reduce motion, for numbers whose change is the content.',
+    files: {
+      html: `<div class="a11y" lang="en">
+  <p class="stat"><span id="customers" data-counter="12480">12,480</span> customers</p>
+  <p class="hears">A screen reader reads the number as: <q id="hears"></q></p>
+  <p class="stat">
+    <span id="online" data-counter="38" data-counter-duration="600" data-counter-announce="{value} people online">38</span>
+    people online
+  </p>
+  <p class="actions">
+    <button type="button" id="join">Someone joins</button>
+    <button type="button" id="leave">Someone leaves</button>
+  </p>
+  <p class="hears">Last announcement: <q id="said"></q></p>
+</div>
+<button type="button" id="again">Count again</button>`,
+      css: `.a11y p { margin: 0 0 0.75rem; }
+.a11y .stat { font-size: 1.5rem; }
+.a11y .stat span { font-weight: 600; font-variant-numeric: tabular-nums; }
+.a11y .hears { font-size: 0.875rem; }
+.a11y .actions { display: flex; gap: 0.5rem; }`,
+      js: `// Start now, so getCounter finds each number's controller.
+Counter.auto()
+
+const customers = document.querySelector('#customers')
+const online = Counter.getCounter(document.querySelector('#online'))
+
+// While it counts, the number is labelled with its final value; when done, it is plain text.
+const hears = document.querySelector('#hears')
+const showHeard = () => (hears.textContent = customers.getAttribute('aria-label') ?? customers.textContent)
+new MutationObserver(showHeard).observe(customers, { attributes: true, childList: true, characterData: true, subtree: true })
+showHeard()
+
+// The polite live region Counter adds to the page, shown here so you can see it.
+const said = document.querySelector('#said')
+new MutationObserver(() => {
+  const text = document.querySelector('[data-counter-announcer]')?.textContent
+  if (text && text !== said.textContent) said.textContent = text
+}).observe(document.body, { childList: true, characterData: true, subtree: true })
+
+document.querySelector('#join').addEventListener('click', () => online.increment())
+document.querySelector('#leave').addEventListener('click', () => online.decrement())
+document.querySelector('#again').addEventListener('click', () => Counter.getCounter(customers).start())`,
+      esm: `import { autoCounter, getCounter } from '@samline/counter'
+
+autoCounter()
+
+const customers = document.querySelector('#customers')
+const online = getCounter(document.querySelector('#online'))
+
+// While it counts, the number is labelled with its final value; when done, it is plain text.
+const hears = document.querySelector('#hears')
+const showHeard = () => (hears.textContent = customers.getAttribute('aria-label') ?? customers.textContent)
+new MutationObserver(showHeard).observe(customers, { attributes: true, childList: true, characterData: true, subtree: true })
+showHeard()
+
+// The polite live region Counter adds to the page, shown here so you can see it.
+const said = document.querySelector('#said')
+new MutationObserver(() => {
+  const text = document.querySelector('[data-counter-announcer]')?.textContent
+  if (text && text !== said.textContent) said.textContent = text
+}).observe(document.body, { childList: true, characterData: true, subtree: true })
+
+document.querySelector('#join').addEventListener('click', () => online.increment())
+document.querySelector('#leave').addEventListener('click', () => online.decrement())
+document.querySelector('#again').addEventListener('click', () => getCounter(customers).start())`,
+    },
+  },
+  {
     id: 'controls',
     tab: 'Controls',
     title: 'Start, pause and finish a simulated clock',

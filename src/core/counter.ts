@@ -324,6 +324,14 @@ export type CounterKind = (typeof KINDS)[number]
 
 export const DATE_STYLES = ['full', 'long', 'medium', 'short'] as const
 
+export const REDUCED_MOTIONS = ['final', 'count'] as const
+
+/**
+ * With `prefers-reduced-motion: reduce`, `'final'` (default) shows the final
+ * value and never counts; `'count'` counts anyway.
+ */
+export type CounterReducedMotion = (typeof REDUCED_MOTIONS)[number]
+
 /**
  * When counting starts: once the element is `visible` (default), on `load`
  * (as soon as it is set up), or `manual` (when you call `start()`).
@@ -395,6 +403,27 @@ export interface CounterOptions {
   format?: Intl.NumberFormatOptions
   /** Full control over the text. Replaces `locale`, `decimals` and `format`. */
   formatter?: (value: number, element: Element) => string
+  /**
+   * While the text is not final (waiting, counting or paused), expose the
+   * final value to screen readers as the element's label, so they never read
+   * a number in between. Applies to elements without a role of their own
+   * (`span`, `strong`, `data`, `time`, `div`…) and no `role` or label
+   * attribute. Defaults to `true`.
+   */
+  label?: boolean
+  /**
+   * Announce new values from `set()`, `increment()`, `decrement()` or a live
+   * attribute in a polite live region once they are shown: `true` reads the
+   * final text, a string is a template where `{value}` is the final text,
+   * such as `'{value} people online'`. Defaults to `false`.
+   */
+  announce?: boolean | string
+  /**
+   * What `prefers-reduced-motion: reduce` does: `'final'` (default) shows
+   * the final value and never counts; `'count'` counts anyway, for numbers
+   * whose change is the content, such as a score.
+   */
+  reducedMotion?: CounterReducedMotion
   /** Count again every time the element enters. Defaults to `false`. */
   repeat?: boolean
   /** When counting starts. Defaults to `'visible'`. */
