@@ -557,8 +557,12 @@ document.querySelector('#again').addEventListener('click', () =>
     <h3>Cart</h3>
     <p class="big"><span id="items" data-counter="1">1</span> items</p>
     <div class="actions">
-      <button type="button" id="remove" aria-label="Remove an item">-</button>
-      <button type="button" id="add" aria-label="Add an item">+</button>
+      <button type="button" id="remove" aria-label="Remove an item">
+        <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14" /></svg>
+      </button>
+      <button type="button" id="add" aria-label="Add an item">
+        <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      </button>
     </div>
   </section>
   <section>
@@ -571,6 +575,7 @@ document.querySelector('#again').addEventListener('click', () =>
 .live h3 { margin: 0 0 0.25rem; font-size: 0.875rem; }
 .big { margin: 0 0 0.5rem; font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .actions { display: flex; gap: 0.5rem; }
+.actions button { display: inline-flex; align-items: center; justify-content: center; min-width: 2.5rem; }
 .actions button[aria-pressed='true'] { font-weight: 700; }
 .note { margin: 0; font-size: 0.875rem; }`,
       js: `// Start counting now (this replaces the automatic start), so getCounter finds
