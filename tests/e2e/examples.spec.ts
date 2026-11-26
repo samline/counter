@@ -198,11 +198,21 @@ test.describe('counter copyable examples', () => {
 
     await page.getByRole('button', { name: 'Count again' }).click()
     await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
-    await page.waitForTimeout(600)
-    // In between, large values show their own digits, not 17 digits and zeros.
-    const middle = await numbers.first().textContent()
-    expect(middle).toMatch(/^[\d,]+$/)
-    if (middle!.replace(/,/g, '').length > 17) expect(middle).not.toMatch(/000$/)
+    // In between, large values show their own digits, not 17 digits and zeros. One
+    // frame can still end in 000 by chance (about 1 in 125 doubles past 2^53), so
+    // sample several frames and expect the digits to show in at least one of them.
+    const samples: string[] = []
+    for (let i = 0; i < 8; i++) {
+      await page.waitForTimeout(120)
+      const [text, state] = await numbers
+        .first()
+        .evaluate(el => [el.textContent ?? '', el.getAttribute('data-counter-state')])
+      if (state === 'counting') samples.push(text)
+    }
+    for (const middle of samples) expect(middle).toMatch(/^[\d,]+$/)
+    const long = samples.filter(middle => middle.replace(/,/g, '').length > 17)
+    expect(long.length).toBeGreaterThan(0)
+    expect(long.some(middle => !/000$/.test(middle))).toBe(true)
     await expect(numbers).toHaveText(final, { timeout: 4000 })
   })
 
