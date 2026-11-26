@@ -199,8 +199,8 @@ test.describe('counter copyable examples', () => {
     await page.getByRole('button', { name: 'Count again' }).click()
     await expect(numbers.first()).toHaveAttribute('data-counter-state', 'counting')
     // In between, large values show their own digits, not 17 digits and zeros. One
-    // frame can still end in 000 by chance (about 1 in 125 doubles past 2^53), so
-    // sample several frames and expect the digits to show in at least one of them.
+    // frame can still end in zeros by chance (doubles past 2^53 are multiples of a
+    // power of two), so sample several frames and expect real digits in at least one.
     const samples: string[] = []
     for (let i = 0; i < 8; i++) {
       await page.waitForTimeout(120)
@@ -212,7 +212,8 @@ test.describe('counter copyable examples', () => {
     for (const middle of samples) expect(middle).toMatch(/^[\d,]+$/)
     const long = samples.filter(middle => middle.replace(/,/g, '').length > 17)
     expect(long.length).toBeGreaterThan(0)
-    expect(long.some(middle => !/000$/.test(middle))).toBe(true)
+    // 17 significant digits padded with zeros would leave every digit past the 17th at 0.
+    expect(long.some(middle => /[1-9]/.test(middle.replace(/,/g, '').slice(17)))).toBe(true)
     await expect(numbers).toHaveText(final, { timeout: 4000 })
   })
 
