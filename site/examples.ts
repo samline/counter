@@ -8,7 +8,7 @@ export default [
     description:
       'The HTML holds the final values, so they read correctly without JavaScript. Each number counts once, when half of it is visible, with the decimals of its target.',
     files: {
-      html: `<div id="page">
+      html: `<div id="page" tabindex="0" role="region" aria-label="Scrollable page">
   <p class="spacer">Scroll down</p>
   <dl class="stats">
     <div><dt>Customers</dt><dd><span data-counter="12480">12,480</span></dd></div>
@@ -220,7 +220,7 @@ document.querySelector('#again').addEventListener('click', () =>
     description:
       'With data-counter-start="scroll" the value follows the scroll position instead of time: it starts when the number enters at the bottom and lands when it reaches the middle, and goes back when you scroll back. It works with rolling digits and with --counter-progress for a bar.',
     files: {
-      html: `<div id="story" lang="en">
+      html: `<div id="story" lang="en" tabindex="0" role="region" aria-label="Scrollable story">
   <p class="spacer">Scroll down slowly, then back up</p>
   <p class="fact"><span data-counter="8000000000" data-counter-start="scroll" data-counter-roll>8,000,000,000</span> people</p>
   <p class="fact"><span data-counter="71" data-counter-start="scroll" data-counter-easing="linear">71</span>% of the surface is water</p>
@@ -380,7 +380,7 @@ document.querySelector('#again').addEventListener('click', () =>
     description:
       'data-counter-from larger than the target counts down. data-counter-repeat resets the number when it leaves and counts again when it comes back.',
     files: {
-      html: `<div id="page">
+      html: `<div id="page" tabindex="0" role="region" aria-label="Scrollable page">
   <p class="spacer">Scroll down, then back up</p>
   <p class="row"><span data-counter="0" data-counter-from="10" data-counter-repeat data-counter-easing="linear">0</span> seconds left</p>
   <p class="row"><span data-counter="365" data-counter-repeat data-counter-duration="1200">365</span> days a year</p>
